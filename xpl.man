@@ -1,0 +1,77 @@
+.TH "XPL" "1" "June 6, 2017" "xpl 0\&.1"
+.SH "NAME"
+xpl \- XPL to C source translator
+.SH SYNOPSIS
+.B xpl
+[\-DGILmMPSTUWX] [\-v number] [\-o outfile] [\-s stringfile] file
+.SH DESCRIPTION
+.B xpl
+compiles an XPL program.
+The source file is translated to C code and written to two output files.
+The first file contains the body of the C code (\fBfile.c\fR).
+The Second file contains the string initialization routines and other
+information the compiler wishes to be known at the start of the program
+(\fBfile.xh\fR).
+The two files are used by the C compiler to generate a working object program.
+.PP
+.B xpl
+takes the following arguments:
+.TP
+\fB\-o \fIoutfile\fR
+.br
+Output file name for C code.
+.TP
+\fB\-s \fIstringfile\fR
+.br
+Output string header file name
+.TP
+\fB\-v \fInumber\fR
+.br
+Number of entries reserved for the argv array
+.TP
+\fIfile\fR
+.br
+XPL input source file name
+.TP
+Uppercase letters set initial values for compiler toggles
+.br
+D - Dump stats at the end of compilation
+.br
+G - 32 bit machine (2 Gig address space)
+.br
+H - Hide identifiers from the C compiler
+.br
+I - Ignore case for keywords and builtin functions
+.br
+K - Emit Linemarkers for the C compiler
+.br
+L - List source
+.br
+m - Do not generate code for main()
+.br
+M - Minimal source listing; takes precedence over -L
+.br
+S - Dump symbol table at end of each procedure
+.br
+T - Trace compiler productions
+.br
+U - Give warning for unused variables
+.br
+W - Inhibit warnings for undeclared variables and procedures
+.br
+X - Show macro expansions
+.br
+Y - Give warning for high order truncation
+.br
+.SH FILES
+.B filename.xpl
+\t XPL source filename.
+.br
+.B filename.c
+\t C source file to be passed to the C compiler.
+.br
+.B filename.xh
+\t C header file included by the C source file.
+.br
+.SH AUTHOR
+Daniel Weaver (shoefoot@gmail.com)

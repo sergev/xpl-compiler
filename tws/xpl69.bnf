@@ -1,0 +1,123 @@
+$             X P L   G R A M M A R
+$
+$ This is the original grammar used by McKeeman, et al.
+$
+$ITERATE
+$ PUNCH
+$
+$
+<program> <statement list>
+<statement list> <statement>
+                     <statement list> <statement>
+<statement>          <basic statement>
+                     <if statement>
+<basic statement>    <assignment> ;
+                     <group> ;
+                     <procedure definition> ;
+                     <return statement> ;
+                     <call statement> ;
+                     <go to statement> ;
+                     <declaration statement> ;
+                     ;
+                     <label definition> <basic statement>
+<if statement>       <if clause> <statement>
+                     <if clause> <true part> <statement>
+                     <label definition> <if statement>
+<if clause>   if <expression> then
+<true part>          <basic statement> else
+<group>              <group head> <ending>
+<group head>         do ;
+                     do <step definition> ;
+                     do <while clause> ;
+                     do <case selector> ;
+                     <group head> <statement>
+<step definition>  <variable> <replace> <expression> <iteration control>
+<iteration control>  to <expression>
+                     to <expression> by <expression>
+<while clause>  while <expression>
+<case selector>  case <expression>
+<procedure definition> <procedure head> <statement list> <ending>
+<procedure head>  <procedure name> ;
+                     <procedure name> <type> ;
+                     <procedure name> <parameter list> ;
+                     <procedure name> <parameter list> <type> ;
+<procedure name>  <label definition> procedure
+<parameter list>  <parameter head> <identifier> )
+<parameter head>  (
+                     <parameter head> <identifier> ,
+<ending>             end
+                     end <identifier>
+                     <label definition> <ending>
+<label definition>  <identifier> :
+<return statement>   return
+                     return <expression>
+<call statement>     call <variable>
+<go to statement>    <go to> <identifier>
+<go to>              go to
+                     goto
+<declaration statement>  declare <declaration element>
+                     <declaration statement> , <declaration element>
+<declaration element>  <type declaration>
+                     <identifier> literally <string>
+<type declaration> <identifier specification> <type>
+                     <bound head> <number> ) <type>
+                     <type declaration> <initial list>
+<type>               fixed
+                     character
+                     label
+                     <bit head> <number> )
+<bit head> bit (
+<bound head> <identifier specification> (
+<identifier specification> <identifier>
+                     <identifier list> <identifier> )
+<identifier list>  (
+                     <identifier list> <identifier> ,
+<initial list>       <initial head> <constant> )
+<initial head>       initial (
+                     <initial head> <constant> ,
+<assignment>  <variable> <replace> <expression>
+                     <left part> <assignment>
+<replace>  =
+<left part>          <variable> ,
+<expression>  <logical factor>
+                     <expression> | <logical factor>
+<logical factor>     <logical secondary>
+                     <logical factor> & <logical secondary>
+<logical secondary>  <logical primary>
+                     ~ <logical primary>
+<logical primary>  <string expression>
+                     <string expression> <relation> <string expression>
+<relation>           =
+                     <
+                     >
+                     ~ =
+                     ~ <
+                     ~ >
+                     < =
+                     > =
+<string expression>  <arithmetic expression>
+                     <string expression> || <arithmetic expression>
+<arithmetic expression> <term>
+                     <arithmetic expression> + <term>
+                     <arithmetic expression> - <term>
+                     + <term>
+                     - <term>
+<term>               <primary>
+                     <term> * <primary>
+                     <term> / <primary>
+                     <term> mod <primary>
+<primary>            <constant>
+                     <variable>
+                     ( <expression> )
+<variable>  <identifier>
+                     <subscript head> <expression> )
+<subscript head>     <identifier> (
+                     <subscript head> <expression> ,
+<constant>           <string>
+                     <number>
+$
+$
+$
+$ P
+$C
+$ OUTPUT
