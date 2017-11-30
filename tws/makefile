@@ -11,15 +11,15 @@ LIBXPL=../libxpl.a
 
 analyzer:	analyzer.xpl
 	$(XPL) analyzer.xpl
-	gcc $(CFLAGS) -I.. analyzer.c $(LIBXPL) -o analyzer
+	$(CC) $(CFLAGS) -I.. analyzer.c $(LIBXPL) -o analyzer
 
 xa:	xa256.xpl
 	$(XPL) -G xa256.xpl
-	gcc $(CFLAGS) -I.. xa256.c $(LIBXPL) -o xa
+	$(CC) $(CFLAGS) -I.. xa256.c $(LIBXPL) -o xa
 
 skeleton:	skeleton.xpl
 	$(XPL) -I skeleton.xpl
-	gcc $(CFLAGS) -I.. skeleton.c $(LIBXPL) -o skeleton
+	$(CC) $(CFLAGS) -I.. skeleton.c $(LIBXPL) -o skeleton
 
 clean:
 	rm -f *.o *.xh *.c analyzer skeleton xa
