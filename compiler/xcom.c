@@ -3100,6 +3100,15 @@ forceaccumulator(int p, int tt, int paren)
 		ps_bin[p] = BIN_ACCUMULATOR;
 		ps_type[p] = ps_type[p] - PROC_VOID;
 		break;
+	case CHAR_PROC_TYPE:
+		/* Example: xprintf('%s', hex(<expression>)); */
+		CAT_INT(forceaccumulator_text, &wrapper_descriptor, get_temp());
+		CAT(forceaccumulator_text, forceaccumulator_text, &bracket_comma_x1);
+		CAT(forceaccumulator_text, forceaccumulator_text, &ps_text(p));
+		CAT(&ps_text(p), forceaccumulator_text, &close_paren);
+		ps_bin[p] = BIN_ACCUMULATOR;
+		ps_type[p] = DESCRIPT;
+		break;
 	case FORWARD_CALL:
 		/* Nothing to do */
 		break;
@@ -3980,7 +3989,7 @@ dump_token(void)
 int
 initialize(void)
 {
-	static STRING splash = STR("XPL to C language translator -- version 0.1a");
+	static STRING splash = STR("XPL to C language translator -- version 0.4");
 	static STRING line_name = STR("__LINE__");
 	static STRING address = STR("address");
 	static STRING bit32 = STR("bit(32)");
@@ -4513,7 +4522,6 @@ synthesize(int production_number)
 	static STRING undef_lab = STR("undefined label or procedure: ");
 	static STRING void_brace = STR("(void) {");
 	static STRING desc = STR("descriptor[");
-	static STRING bad_inline = STR("INLINE requires a character string argument");
 	static STRING return_x1 = STR("return ");
 	static STRING return_zero = STR("return 0;");
 	static STRING if_clause = STR("if (");
@@ -4610,10 +4618,11 @@ synthesize(int production_number)
 	case PN_BASIC_STATEMENT_5:
 		/*  <basic statement> ::= <call statement> ;    */
 		if (ps_type[mp] == SPECIAL) {	/* BIN_INLINE */
+
 			if (BYTE(&ps_text(mp), 0) == '#') {
 				emit_preprocessor(&ps_text(mp), ps_line[mp]);
 			} else {
-				emit_code(&ps_text(mp), ps_line[mp]);
+				emit_declare(&ps_text(mp), ps_line[mp]);
 			}
 			ps_text(mp)._Length = 0;
 		} else {
@@ -4629,11 +4638,7 @@ synthesize(int production_number)
 		break;
 	case PN_BASIC_STATEMENT_8:
 		/*  <basic statement> ::= ;    */
-		if (divert_code[proc_nest]) {
-			emit_code(&semicolon, ps_line[mp]);
-		} else {
-			emit_declare(&semicolon, ps_line[mp]);
-		}
+		emit_declare(&semicolon, ps_line[mp]);
 		ps_text(mp)._Length = 0;
 		break;
 	case PN_BASIC_STATEMENT_9:
@@ -5574,11 +5579,11 @@ synthesize(int production_number)
 			}
 			break;
 		case BIN_INLINE:
-			if (ps_type[mpp1] != STRINGCON) {
-				error(&bad_inline, __LINE__, 0);
-				break;
+			if (ps_type[mpp1] == STRINGCON) {
+				CAT(&ps_text(mp), &ps_text(mp), &ps_name(mpp1));
+			} else {
+				CAT(&ps_text(mp), &ps_text(mp), &ps_text(mpp1));
 			}
-			ps_text(mp) = ps_name(mpp1);
 			ps_type[mp] = SPECIAL;
 			break;
 		case BIN_ADDR:
@@ -5764,6 +5769,9 @@ synthesize(int production_number)
 		case BIN_FILE:
 			ps_text(mp) = open_paren;
 			break;
+		case BIN_INLINE:
+			ps_text(mp)._Length = 0;  /* Clear the function name */
+			break;
 		case BIN_XPRINTF:
 			{
 				static STRING bin_xprintf = STR("xprintf(0, 0, ");
@@ -5849,16 +5857,11 @@ synthesize(int production_number)
 			ps_type[mp] = ps_type[mpp1];
 			break;
 		case BIN_INLINE:
-			if (ps_type[mpp1] != STRINGCON) {
-				error(&bad_inline, __LINE__, 0);
-				break;
-			}
-			if (BYTE(&ps_name(mpp1), 0) == '#') {
-				emit_preprocessor(&ps_name(mpp1), ps_line[mpp1]);
+			if (ps_type[mpp1] == STRINGCON) {
+				CAT(&ps_text(mp), &ps_text(mp), &ps_name(mpp1));
 			} else {
-				emit_declare(&ps_name(mpp1), ps_line[mpp1]);
+				CAT(&ps_text(mp), &ps_text(mp), &ps_text(mpp1));
 			}
-			ps_text(mp)._Length = 0;
 			break;
 		case BIN_FILE:
 			if (ps_cnt[mp] == 1) {
