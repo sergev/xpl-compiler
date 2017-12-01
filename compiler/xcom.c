@@ -2936,6 +2936,19 @@ setinit(int p, int vp)
 		return;
 	}
 	setinit_string = get_temp_descriptor();
+	if (ps_type[vp] == SPECIAL && ps_bin[vp] == BIN_INLINE) {
+		/* declare xxx fixed initial(inline('TEXT')) */
+		if (ps_text(p)._Length > 0 &&
+			ps_text(p)._Length + ps_text(vp)._Length > 80) {
+			emit_declare(&ps_text(p), ps_line[vp]);
+			ps_text(p)._Length = 0;
+		}
+		/* No type conversion */
+		CAT(&ps_text(p), &ps_text(p), &ps_text(vp));
+		if (initial_count > 0) {
+			CAT(&ps_text(p), &ps_text(p), &comma_x1);
+		}
+	} else
 	if (itype == CHARFIXED) {
 		if (ps_type[vp] == CONSTANT ) {
 			if (ps_name(vp)._Length == 0) {
@@ -5579,6 +5592,13 @@ synthesize(int production_number)
 			}
 			break;
 		case BIN_INLINE:
+			if (ps_type[mpp1] == CONSTANT) {
+				if (ps_name(mpp1)._Length == 0) {
+					/* Convert an integer constant to a string constant */
+					__xpl_decimal(&ps_name(mpp1), ps_value[mpp1]);
+				}
+				ps_type[mpp1] = STRINGCON;
+			}
 			if (ps_type[mpp1] == STRINGCON) {
 				CAT(&ps_text(mp), &ps_text(mp), &ps_name(mpp1));
 			} else {
@@ -5857,6 +5877,13 @@ synthesize(int production_number)
 			ps_type[mp] = ps_type[mpp1];
 			break;
 		case BIN_INLINE:
+			if (ps_type[mpp1] == CONSTANT) {
+				if (ps_name(mpp1)._Length == 0) {
+					/* Convert an integer constant to a string constant */
+					__xpl_decimal(&ps_name(mpp1), ps_value[mpp1]);
+				}
+				ps_type[mpp1] = STRINGCON;
+			}
 			if (ps_type[mpp1] == STRINGCON) {
 				CAT(&ps_text(mp), &ps_text(mp), &ps_name(mpp1));
 			} else {
