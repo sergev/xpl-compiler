@@ -709,8 +709,8 @@ struct builtin_s {
 enum specials {BIN_SCALAR, BIN_ARRAY, BIN_STRING, BIN_CHAR_POINTER, BIN_CALL,
 	BIN_MOPAR, BIN_ACCUMULATOR, BIN_LENGTH, BIN_SUBSTR, BIN_BYTE, BIN_SHL, BIN_SHR,
 	BIN_INPUT, BIN_OUTPUT, BIN_FILE, BIN_INLINE, BIN_ADDR, BIN_SADDR,
-	BIN_COREBYTE, BIN_COREHALFWORD, BIN_COREWORD, BIN_BUILD_DESCRIPTOR,
-	BIN_XFPRINTF, BIN_XPRINTF, BIN_XSPRINTF};
+	BIN_COREBYTE, BIN_COREHALFWORD, BIN_COREWORD, BIN_CORELONGWORD,
+	BIN_BUILD_DESCRIPTOR, BIN_XFPRINTF, BIN_XPRINTF, BIN_XSPRINTF};
 
 struct builtin_s builtin[] = {
 	{FIXEDTYPE, 0, 0, STR("time_of_generation")},
@@ -727,7 +727,7 @@ struct builtin_s builtin[] = {
 	{PROC_VOID, 0, 0, STR("exit")},
 	{FIXEDTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow exit()  */
 	{PROC_VOID, 0, 0, STR("abort")},
-	{FIXEDTYPE, 0, 0, STR("errno")},
+	{FIXEDTYPE, 0, 0, STR("xerrno")},
 	{PROC_BIT32, 0, 0, STR("xfopen")},
 	{CHRTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xfopen()  */
 	{CHRTYPE, 0, 0, STR(" ")},	/* Parameter 2.  Must follow xfopen()  */
@@ -754,6 +754,7 @@ struct builtin_s builtin[] = {
 	{SPECIAL, BIN_COREBYTE, 0, STR("corebyte")},
 	{SPECIAL, BIN_COREHALFWORD, 0, STR("corehalfword")},
 	{SPECIAL, BIN_COREWORD, 0, STR("coreword")},
+	{SPECIAL, BIN_CORELONGWORD, 0, STR("corelongword")},
 	{SPECIAL, BIN_BUILD_DESCRIPTOR, 0, STR("build_descriptor")},
 	{SPECIAL, BIN_XFPRINTF, 0, STR("xfprintf")},
 	{SPECIAL, BIN_XPRINTF, 0, STR("xprintf")},
@@ -2148,7 +2149,7 @@ dump_init_strings(int last)
 	int i;
 
 	if (last) {
-		fprintf(string_file, "static void __xpl_init_strings(void) {\n");
+		fprintf(string_file, "void __xpl_init_strings(void) {\n");
 		/* "}" */
 	} else {
 		fprintf(string_file, "static void __xpl_init_string%d(void) {\n",
@@ -2200,6 +2201,7 @@ emit_headers(void)
 	fprintf(out_file, "static unsigned char *corebyte;\n");
 	fprintf(out_file, "static short *corehalfword;\n");
 	fprintf(out_file, "static int *coreword, argc;\n");
+	fprintf(out_file, "static XPL_LONG *corelongword;\n");
 	output_line = 7;
 }
 
@@ -4552,6 +4554,8 @@ synthesize(int production_number)
 	static STRING halfword_tail = STR(") >> 1]");
 	static STRING word_head = STR("coreword[(XPL_ADDRESS)(");
 	static STRING word_tail = STR(") >> 2]");
+	static STRING longword_head = STR("corelongword[(XPL_ADDRESS)(");
+	static STRING longword_tail = STR(") >> 3]");
 	static STRING ampersand_ampersand = STR("&&");
 	static STRING dot_address = STR("._Address");
 	static STRING point_address = STR("->_Address");
@@ -5376,6 +5380,7 @@ synthesize(int production_number)
 		case BIN_COREBYTE:
 		case BIN_COREHALFWORD:
 		case BIN_COREWORD:
+		case BIN_CORELONGWORD:
 		case BIN_ARRAY:
 			/* Add [0] to any unsubscripted arrays */
 			CAT(&ps_text(mp), &ps_text(mp), &index_zero);
@@ -5707,6 +5712,21 @@ synthesize(int production_number)
 			CAT(synthesize_string, &word_head, &ps_text(mpp1));
 			CAT(&ps_text(mp), synthesize_string, &word_tail);
 			ps_type[mp] = FIXEDTYPE;
+			ps_bin[mp] = BIN_ACCUMULATOR;
+			break;
+		case BIN_CORELONGWORD:
+			if (ps_cnt[mp] > 1) {
+				too_many_arguments(mp, __LINE__);
+				break;
+			}
+			forceaccumulator(mpp1, DOUBLEWORD, FALSE);
+			CAT(synthesize_string, &longword_head, &ps_text(mpp1));
+			if (sizeof_long == 4) {
+				CAT(&ps_text(mp), synthesize_string, &word_tail);
+			} else {
+				CAT(&ps_text(mp), synthesize_string, &longword_tail);
+			}
+			ps_type[mp] = DOUBLEWORD;
 			ps_bin[mp] = BIN_ACCUMULATOR;
 			break;
 		case BIN_BUILD_DESCRIPTOR:
@@ -6254,7 +6274,7 @@ print_summary(void)
 void
 usage(void)
 {
-	printf("Usage:\n   xpl [-DGILmMPSTUWX] [-v number] [-o outfile] [-s stringfile] file\n");
+	printf("Usage:\n   xpl [-DGHIKLmMSTUWXY] [-v number] [-o outfile] [-s stringfile] file\n");
 	printf("      -o outfile - Output file name for C code\n");
 	printf("      -s stringfile - Output string header file name\n");
 	printf("      -v number - Number of entries reserved for the argv array\n");
