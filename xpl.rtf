@@ -17,7 +17,7 @@ Daniel Weaver\
 \ls1\ilvl0\cf0 1.		Introduction\cf2 \cb3 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li721\fi-722\ri-2152\pardirnatural\partightenfactor0
 \cf2 \
-	      \CocoaLigature0 XPL is a dialect of PL/1 created by W. M. McKeeman et. al. and described in his book \ul A Compiler Generator\ulnone .  XPL was designed to be used in table-driven syntax-directed translators such as the XPL compiler itself.  The XPL system, which includes the compiler, SKELETON, and ANALYZER, provides a quick and efficient method for defining a language.  If a BNF (BACKUS-NAUR FORM) description of a computer language is input to the ANALYZER, it generates the syntax tables used in either SKELETON or the XPL compiler.  The syntax tables along with SKELETON form a syntax checker for your BNF grammar. Code emitters may be added to upgrade the syntax checker to a compiler.\
+	      \CocoaLigature0 XPL is a dialect of PL/I created by W. M. McKeeman et. al. and described in his book \ul A Compiler Generator\ulnone .  XPL was designed to be used in table-driven syntax-directed translators such as the XPL compiler itself.  The XPL system, which includes the compiler, SKELETON, and ANALYZER, provides a quick and efficient method for defining a language.  If a BNF (BACKUS-NAUR FORM) description of a computer language is input to the ANALYZER, it generates the syntax tables used in either SKELETON or the XPL compiler.  The syntax tables along with SKELETON form a syntax checker for your BNF grammar. Code emitters may be added to upgrade the syntax checker to a compiler.\
 \
 1.1	Source Translation\
 \
@@ -138,13 +138,13 @@ Daniel Weaver\
 \b0 \
 \
 	      As an extension to the XPL language, this compiler allows the base to be any number between 1 and 64 (32 for a 32 bit machine).  This allows you to use values that are wider than 4 bits and aligned on arbitrary boundaries.  When using this feature a blank will terminate the bit field.\
-	     Let\'92s say you have a 16 bit opcode where the most significant bit is a one bit field and the remainder of the opcode is three five bit fields.  For this example the left most bit is zero and all three five bit fields are set to one.  Using simple <bit string> and hexadecimal the value would be \'930421\'94.  It is possible to render the string with a mix of binary and hexadecimal \'93(1) 0 0 (4)1 (1)0 (4)1 (1)0 (4)1\'94.  This is not very easy to read.  However if you use <extended hexadecimal>  the bit string becomes \'93(1)0 (5)01 01 01\'94.  Which is much easier to read.\
+	     Let\'92s say you have a 16 bit opcode where the most significant bit is a one bit field and the remainder of the opcode is three five bit fields.  For this example the left most bit is zero and all three five bit fields are set to one.  Using simple <bit string> and hexadecimal the value would be "0421".  It is possible to render the string with a mix of binary and hexadecimal "(1) 0 0 (4)1 (1)0 (4)1 (1)0 (4)1".  This is not very easy to read.  However if you use <extended hexadecimal>  the bit string becomes "(1)0 (5)01 01 01".  Which is much easier to read.\
 	    Here is a real world example using the SPARC instruction set:\
 		"(2)0 (5)1f (6)00 (5)1f (1)0 (13)fff"\
 \
 2.6	C character string emulation\
 \
-	      Another extension to the original XPL language allows the definition of strings that look similar to strings in C.  This feature is activated by using the letter C instead of a number surrounded by parentheses.  A C string would be \'93(c)Hello World!\'94.  This string format recognizes the C escape characters when used in conjunction with the backslash.  The following escape characters are supported:\
+	      Another extension to the original XPL language allows the definition of strings that look similar to strings in C.  This feature is activated by using the letter C instead of a number surrounded by parentheses.  A C string would be "(c)Hello World!".  This string format recognizes the C escape characters when used in conjunction with the backslash.  The following escape characters are supported:\
 		\\a	Bell\
 		\\b	Backspace\
 		\\f	Formfeed\
@@ -154,7 +154,7 @@ Daniel Weaver\
 		\\v	Vertical Tab\
 		\\\\	Blackslash\
 		\\'	Single Quote\
-		\\\'94	Double quote\
+		\\"	Double quote\
 		\\?	Question mark\
 		\\xHH	Hex byte\
 		\\777	Octal\
@@ -162,7 +162,7 @@ Daniel Weaver\
 	    This feature is very useful when used with the xprintf() function.  Example:\
 		
 \b do k = 1 to 10;\
-			call xprintf(\'93(c)The value of k is %d\\n\'94, k);\
+			call xprintf("(c)The value of k is %d\\n", k);\
 		end;
 \b0 \
 \
@@ -177,8 +177,8 @@ Daniel Weaver\
 	     Within the compiler bit strings less than 64 bits (32 on a 32 bit machine) are kept as both an integer and a character string.  The selection of which form to use is chosen by the context of the statement which uses the bit string.  The compiler chooses the type that requires the least amount of type conversion.  For example:\
 		
 \b declare string character, number bit(32);\
-		string = \'93(c)HI\'94;\
-		number = \'93(c)HI\'94;
+		string = "(c)HI";\
+		number = "(c)HI";
 \b0 \
 	      Will set the variable 
 \b string
@@ -197,7 +197,9 @@ Daniel Weaver\
 \b <letter>
 \b0  respectively.   Example:\
 		/* Push the value of H.  $>H  After a push the toggle is OFF */\
-		declare new_variable fixed;\
+		
+\b declare new_variable fixed;
+\b0 \
 		/* Pop the value of H. $<H  The toggle returns to its previous value. */\
 	     The original XPL compiler used $| to delineate the rightmost end of the input stream.  This feature is not supported.\
 \
@@ -233,7 +235,7 @@ Daniel Weaver\
 \b declare stuff bit(4096) initial('12345');
 \b0 	/* The length(stuff) is 5 */\
 		
-\b stuff = 'A longer string.\'92;
+\b stuff = 'A longer string.';
 \b0 			/* The length(stuff) is now 16 */\
 	      The fixed length CHARACTER format e.g. CHARACTER(5) is used much like dynamic character strings except that it allocates a dedicated storage area to hold he string.  All fixed length strings are null terminated.  When the string is used as a source the compiler creates a descriptor that holds the address and length of the string.  The descriptor format is exactly like the descriptors used for variable length strings.  The length of the string is created by finding the null terminator.  When a fixed length string is used in a store operation the data in the string is copied to the storage area of the fixed length string and a null terminator is attached to the end of the string.  If the string is longer than the space allotted to the fixed length string the string will be truncated and the null terminator will be placed in the last byte of the string.  Fixed length strings are designed to help interface to programs written in C.\
 	      The LABEL declaration type is used for GOTO's and forward procedure calls.\
@@ -402,10 +404,79 @@ Daniel Weaver\
 
 \b0 \
 	      Due to the constraints of the underlying C compiler all functions must use the RETURN statement with a value.  All subroutines may only use RETURN statements without a value.  If execution of a procedure hits the END statement or a procedure, a return is executed with no value.\
+	     If the RETURN statement is used outside of a procedure it will end the program.  The 
+\b <expression>
+\b0  on the RETURN statement will be the exit code of the program.\
  \
 4.4	Recursive procedures\
 \
 	      XPL does not support recursion.  Just because the compiler target is a recursive language does not make the resulting code recursive.  Nested procedures cause local variables to be declared static.  In order to do garbage collection all character strings are allocated in a single array.  Character strings may not be allocated on the stack.  This prevents subroutines and functions from being recursive.\
+\
+4.5	What happened to the main procedure?\
+\
+	     XPL does not used a main procedure like in PL/I or C.  Statements that are not enclosed within a procedure are assumed to be the start of execution.  These statements appear as though they were enclosed on a PL/I procedure with 
+\b procedure options(main)
+\b0 .  
+\b main
+\b0  is not a reserved word in XPL.  This is a simple XPL program that calls a subroutine which happens to named 
+\b main
+\b0 .\
+\
+		
+\b /* The <identifier> main has no special meaning in XPL */\
+		main: procedure;\
+			output = 'Calling main procedure.';\
+		end main;\
+\
+		/* The real main procedure starts here */\
+		call main;\
+		eof;
+\b0 \
+\
+4.6	Calling XPL from some other language\
+\
+	     An XPL program may be called from a program written in some other language.  This is signaled to the compiler by using the 
+\b -m
+\b0  option on the command line.  Normally the compiler generates a 
+\b main()
+\b0  procedure which does some initialization then calls 
+\b __xpl_user_main()
+\b0  which is the XPL equivalent of the 
+\b main
+\b0  program in C.  If you want to call an XPL function from some other language you will need to do the initialization normally done in the C 
+\b main()
+\b0  program.  Example:\
+\
+		
+\b /* This is XPL code compiled with the -m option */\
+		xpl_code: procedure;\
+			/* Do some super cool XPL stuff here */\
+			output = 'Doing cool XPL stuff.';\
+		end xpl_code;\
+		eof eof eof
+\b0 \
+\
+	Sample C code that calls XPL.\
+\
+		
+\b #include "xpl.h"\
+\
+		void xpl_code(void);\
+\
+		int main(int arc, char **argv) \{\
+			/* Initialize the XPL run time.  Only do this once. */\
+			if (__xpl_runtime_init(0)) return 1;\
+			__xpl_init_strings();\
+\
+			/* Call any XPL function or procedure with the name used in the XPL code. */\
+			xpl_code();\
+			/* Be careful when naming the XPL functions.  Choose an <identifier> that is\
+			legal in both languages.  e.g. Don\'92t define a function build#value. */\
+			return 0;\
+ 		\}
+\b0 \
+\
+	Multiple functions may be called from the foreign code but all the procedures must be placed in the same XPL file.\
 \
 5.	Control Flow\
 \
@@ -626,7 +697,7 @@ Daniel Weaver\
 	All other unit numbers are undefined when the program starts up.  They may be assigned by using the builtin function xfopen().\
 \
 	      I/O errors will set the variable 
-\b errno
+\b xerrno
 \b0  to the value of the errno variable which is normally set by the Operating System.\
 \
 7.2	The Compactify Procedure\
@@ -659,7 +730,7 @@ Daniel Weaver\
 \
 	      Using C as a target language enforces a number of restrictions on the XPL compiler.  Most of these are minor but I list them here so you can decide.  In the following text XPL69 refers to the original XPL implementation as described in \ul A Compiler Generator\ulnone .\
 \
-	1) When calling a function or subroutine you should supply all arguments defined by the procedure.  XPL69 allowed arguments to be omitted and they would retain values from the previous call.  Since the C compiler requires the number of arguments to match the XPL compiler adds arguments to fill out the procedure call.  These arguments are set to zero.\
+	1) When calling a function or subroutine you should supply all arguments defined by the procedure.  XPL69 allowed arguments to be omitted and they would retain values from the previous call.  Since the C compiler requires the number of arguments to match the XPL compiler adds arguments to fill out the procedure call.  These arguments are set to zero.  Forward reference procedures defined with the LABEL declaration will not have extra arguments appended because the compiler does know the number of arguments in the procedure.\
 \
 	2) Declare statements may only be used at the beginning of a block.  This exactly matches the restrictions in the C language.  XPL69 allowed declarations to be anywhere.\
 \
@@ -739,7 +810,7 @@ Appendix A --- Compiler Options --- \
 	-I		Ignore case.  This allows the use of uppercase letters for keywords and builtin functions.\
 	-K		Emit Linemarkers for the C compiler.  This tells the compiler to generate #line directives when emitting code that is passed to the C compiler.  This should help you find errors that show up when the C source is compiled but were not detected by the XPL compiler.\
 	-L		List source.  Back in the day, programmers would use line printers to get listing of their programs.  The listings would be annotated with line numbers and procedure names and the like.  You can capture this listing by redirecting stdout to a file.\
-	-m		The code will be generated without a main() procedure.  This will allow some other program written in a different language to call the XPL program.\
+	-m		The code will be generated without a main() procedure.  This will allow some other program written in a different language to call the XPL program.  When using this option all statements must be enclosed within a PROCEDURE. \
 	-M		Minimal source listing.  List the source code without all the useful annotations.  This takes precedence over -L.\
 	-S		Print a symbol table dump at the end of the program and the end of each procedure on stdout.\
 	-T		Trace compiler productions.  This is useful for debugging the compiler to tell when a line of text is being created for output.  This is way too noisy to be generally useful.\
@@ -760,9 +831,17 @@ Appendix B --- Built-in Functions --- \
 \
 	address	A macro that expands to BIT(32) on 32-bit machines and expands to BIT(64) on 64-bit machines.  This is a transparent way to hold an address when porting between machines with different size addresses.\
 \
-	argc		A 32-bit integer that holds the number of elements in the argv array.  Note:  This holds the number of elements exactly like the argc variable in C.  It does not hold the number of elements minus one as is the standard practice in XPL.\
+	argc		A 32-bit integer that holds the number of elements in the 
+\b argv
+\b0  array.  Note:  This holds the number of elements exactly like the 
+\b argc
+\b0  variable in C.  It does not hold the number of elements minus one as is the standard practice in XPL.\
 \
-	argv(31)	A CHARACTER string array the holds the values of the options passed on the command line.  The maximum number of elements in the argv array can be changed with the -v option at compile time.\
+	argv(31)	A CHARACTER string array the holds the values of the options passed on the command line.  
+\b argv(0)
+\b0  holds the program name.  The maximum number of elements in the 
+\b argv
+\b0  array can be changed with the -v option at compile time.\
 \
 	build_descriptor(length, address)	Build a string descriptor with the 
 \b length 
@@ -778,18 +857,33 @@ Appendix B --- Built-in Functions --- \
 \b0 \
 \
 	byte(string, position)	This is a builtin function that acts like a preudo-array which allows access to the string at the selected position.  The position starts counting at zero.  The byte function may appear on either the left or the right of the assignment operator.  The sequence:\
-				S = 'ABC';  I = byte(S, 1);\
-			Returns the value of 'B' (\'9342\'94).  The following is an example of byte() used on the left of an assignment operator:\
-				S = 'ABC';  S = S || S;  byte(S, 2) = \'9341\'94;\
-			The above sequence will assign the value of 'ABAABC' to S.  The byte() function modifies the string but does not move it.  Any SUBSTRings pointing to the same area will also be modified.  The byte() function can be used with both dynamic CHARACTER strings as well as fixed length strings.\
+				
+\b S = 'ABC';  I = byte(S, 1);
+\b0 \
+			Returns the value of 'B' ("42" in hex.  66 in decimal.).  The following is an example of 
+\b byte()
+\b0  used on the left of an assignment operator:\
+				
+\b S = 'ABC';  S = S || S;  byte(S, 2) = "41";
+\b0 \
+			The above sequence will assign the value of 'ABAABC' to S.  The 
+\b byte()
+\b0  function modifies the string but does not move it.  Any SUBSTRings pointing to the same area will also be modified.  The 
+\b byte()
+\b0  function can be used with both dynamic CHARACTER strings as well as fixed length strings.\
 \
-	byte(string)	Short form of the above function which refers to the first element of the string.  This is equivalent to byte(string, 0).\
+	byte(string)	Short form of the above function which refers to the first element of the string.  This is equivalent to byte(string, 0).  The form of the byte() function is commonly used to convert string constants to integers.  For example:\
+				
+\b if byte(string, position) = byte(';') then do; /* process semicolon */ end;
+\b0 \
 \
 	compactify	A subroutine used for garbage collection of the string area.  The casual user need never call it, but it is useful if you wish to control the exact point at which garbage collection is done.\
 \
 	corebyte(address)	A BIT(8) array that starts at location zero and allows access to the entire memory.  This array may be used on either side of the assignment operator.\
 \
 	corehalfword(address)	A BIT(16) array that starts at location zero and allows access to the entire memory.  This array may be used on either side of the assignment operator.\
+\
+	corelongword(address)	A BIT(64) array that starts at location zero and allows access to the entire memory.  This array may be used on either side of the assignment operator.\
 \
 	coreword(address)	A BIT(32) array that starts at location zero and allows access to the entire memory.  This array may be used on either side of the assignment operator.\
 \
@@ -803,12 +897,6 @@ Appendix B --- Built-in Functions --- \
 	date_of_generation	A bit(32) variable the holds the value of the date function when the code was compiled.\
 \
 	descriptor()	An array which holds all the descriptors used by the program.\
-\
-	errno		A BIT(32) variable the will be set to the value of the Unix/Linux errno variable if there is an I/O error in the XPL runtime.  This variable is set to zero if the most recent I/O operation was successful.  The XPL variable 
-\b errno
-\b0  is not a direct mapping on the C language variable 
-\b errno
-\b0 .  This variable only gets set when an error occurs in the XPL runtime.\
 \
 	exit(v)		A function that causes the program to exit with a value v.  XPL69 implements exit() as an abnormal exit that causes a core dump.  I have chosen to implement the C style of exit that causes a normal termination of the program.\
 \
@@ -899,10 +987,10 @@ Appendix B --- Built-in Functions --- \
 				text = input(2);
 \b0 	/* Read one string from unit 2 */\
 \
-			The input function reads characters until it finds a newline (hex code \'930A\'94).  Carriage returns are discarded.  End-of-file will be indicated by returning a null string.\
+			The input function reads characters until it finds a newline (hex code "0A").  Carriage returns are discarded.  End-of-file will be indicated by returning a null string.\
 \
 			If you open a file as binary it will return all characters in the input stream.  Reading a binary file will typically return a string of 1024 bytes.  End-of-file will be indicated by reading 
-\b errno
+\b xerrno
 \b0 .  See 
 \b xfopen()
 \b0  function.\
@@ -1016,6 +1104,14 @@ Appendix B --- Built-in Functions --- \
 \
 	untrace	This subroutine does nothing.  It is included here for compatibility.\
 \
+	xerrno		A BIT(32) variable the will be set to the value of the Unix/Linux 
+\b errno
+\b0  variable if there is an I/O error in the XPL runtime.  This variable is set to zero if the most recent I/O operation in the runtime was successful.  The XPL variable 
+\b xerrno
+\b0  is not a direct mapping of the C language variable 
+\b errno
+\b0 .  This variable only gets set when an error occurs in the XPL runtime.\
+\
 	xfclose(unit)	A subroutine that interfaces to the C 
 \b fclose()
 \b0  function.	 The 
@@ -1075,15 +1171,15 @@ Appendix B --- Built-in Functions --- \
 			
 \b declare age fixed initial(4);\
 \
-			call xfprintf(unit, \'93(c) I am %d years old today.\\n\'94, age);\
+			call xfprintf(unit, "(c) I am %d years old today.\\n", age);\
 \
 
-\b0 	xprintf(format, args, \'85)	A print function that works similar to the printf function in the C programming language.  This function returns the number of characters printed.  Example:\
+\b0 	xprintf(format, args, \'85)	A print function that works similar to the printf function in the C programming language.  The output is sent to unit zero.  This function returns the number of characters printed.  Example:\
 \
 			
 \b declare age fixed initial(4);\
 \
-			call xprintf(\'93(c) I am %d years old today.\\n\'94, age);\
+			call xprintf("(c) I am %d years old today.\\n", age);\
 
 \b0 \
 	xsprintf(buffer, format, args, \'85)	A character conversion function that works similar to the sprintf function in the C programming language.  The buffer may be a dynamic string or a fixed length string.  The buffer may not be an expression.  The function returns the number of characters put into the buffer.  Example:\
@@ -1094,7 +1190,7 @@ Appendix B --- Built-in Functions --- \
 			declare text character(80);\
 \
 			call xsprintf(string, 'Help me %s.  You''re my only hope.',  'Obi Wan');\
-			call xsprintf(text, 'string=\'93%s\'94, age=%3.2d', string, age);\
+			call xsprintf(text, 'string="%s", age=%3.2d', string, age);\
 \
 			/* The buffer is cleared at the beginning of the function call.  */
 \b0 \
