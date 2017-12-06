@@ -54,6 +54,7 @@ extern int ndescript;
 extern int __xpl_colections[3];	/* Count the number of collections */
 
 int __xpl_runtime_init(int size);
+void __xpl_init_strings(void);
 
 void compactify(void);
 int __xpl_compare(__xpl_string *left, __xpl_string *right);
@@ -74,10 +75,12 @@ __xpl_string *__xpl_substr3(__xpl_string *outstr, __xpl_string *str, int pos, in
 
 /* I/O routines */
 #define __XPL_FILE_MAX 32
-void *__xpl_FILE_in[__XPL_FILE_MAX];
-void *__xpl_FILE_out[__XPL_FILE_MAX];
-int __xpl_FILE_flags[__XPL_FILE_MAX];
-int __xpl__errno;	/* Set to the Unix value of errno */
+#if defined(__xpl_FILE)
+__xpl_FILE *__xpl_FILE_in[__XPL_FILE_MAX];
+__xpl_FILE *__xpl_FILE_out[__XPL_FILE_MAX];
+#endif
+extern int __xpl_FILE_flags[__XPL_FILE_MAX];
+extern int xerrno;	/* Set to the Unix value of errno when calling the runtime */
 
 int xfopen(__xpl_string *filename, __xpl_string *mode);
 int xfclose(int unit);
@@ -111,7 +114,7 @@ __xpl_string *__xpl_unique(__xpl_string *outstr, __xpl_string *str);
 
 int __xpl_read_file(int num, int rec, void *buffer, unsigned long rec_size);
 int __xpl_write_file(int num, int rec, void *buffer, unsigned long rec_size);
-XPL_ADDRESS file_record_size;	/* Max record size for builtin function FILE() */
+extern XPL_ADDRESS file_record_size;	/* Max record size for builtin function FILE() */
 
 __xpl_string *hex(XPL_LONG number);
 

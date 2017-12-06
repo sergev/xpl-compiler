@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <string.h>
 
+#define __xpl_FILE FILE
 #include "xpl.h"
 
 #define BYTE __xpl_get_byte
@@ -180,7 +181,7 @@ xprintf(int func, void *ref, __xpl_string *xfmt, ...)
 	void *void_star;
 
 	va_start(args, xfmt);
-	__xpl__errno = 0;
+	xerrno = 0;
 	if (!xfmt) {
 		xfmt = &null_format;
 	}
@@ -192,7 +193,7 @@ xprintf(int func, void *ref, __xpl_string *xfmt, ...)
 	case 1:
 		i = (int) ((XPL_ADDRESS) ref);
 		if (i < 0 || i > __XPL_FILE_MAX) {
-			__xpl__errno = -2;
+			xerrno = -2;
 			return 0;
 		}
 		ref = (void *) __xpl_FILE_out[i];
@@ -204,13 +205,13 @@ xprintf(int func, void *ref, __xpl_string *xfmt, ...)
 		break;
 	case 3:
 		if (((__xpl_string *) ref)->_Length < 2) {
-			__xpl__errno = -3;
+			xerrno = -3;
 			return 0;
 		}
 		print = build_charfix;
 		break;
 	default:
-		__xpl__errno = -1;
+		xerrno = -1;
 		return 0;
 	}
 	xp_char_count = 0;
