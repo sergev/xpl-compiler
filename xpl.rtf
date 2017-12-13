@@ -220,11 +220,11 @@ Daniel Weaver\
 \
 	      The XPL compiler defines a macro that describes an address type.  On machines that have a 32-bit address the macro will be:\
 		
-\b declare address literally \'91bit(32)\'92;
+\b declare address literally 'bit(32)';
 \b0 \
 	On machines that have a 64-bit address the macro will be:\
 		
-\b declare address literally \'91bit(64)\'92;
+\b declare address literally 'bit(64)';
 \b0 \
 	 The identifier 
 \i address
@@ -378,12 +378,45 @@ Daniel Weaver\
 \b0 \
 	      The number of parameters in the calling statement must match the number of parameters in the procedure.  Type conversion, if possible, will be performed as part of the calling sequence.\
 \
-4.2	Scope\
+4.2	External procedures\
+\
+	     XPL allows the declaration of external procedures similar to how external procedures are defined in PL/M.  Given a C function defined as:\
+		
+\b int my_function(short a, int b) \{\
+			return a + b;\
+		\}
+\b0 \
+	You can access this function from XPL with:\
+		
+\b my_function: procedure(a, b) fixed external;\
+			declare a bit(16), b fixed;\
+		end my_function;\
+\
+		result = my_function(6, 32768);
+\b0 \
+\
+	      The EXTERNAL keyword may also be used to define forward referenced procedures.\
+\
+4.3	Transparent procedure definitions\
+\
+	     When you include a C header file with the inline function the function prototypes defined in the header file should be used rather than a function prototype created by the XPL compiler.  The transparent keyword tells the compiler to enter the function into the symbol table but don\'92t generate any code to define the function in the output file.\
+\
+		
+\b call inline('#include <stdio.h>');\
+\
+		putchar: procedure(char) fixed transparent;\
+			declare char fixed;\
+		end putchar;\
+\
+		call putchar(byte('?'));  /* Output the character '?' */
+\b0 \
+\
+4.4	Scope\
 \
 	      Identifiers may only be referenced within their proper scope.  The scope of an identifier declared before any procedure definition, is any statement following the declaration.  Identifiers declared within procedures may only be referenced within the procedure they were declared in.  After each procedure ends, all variables defined in the procedure are removed from the symbol table.  The storage space allocated to the static variables within the procedure is not deallocated.  Values stored in these variables will remain until changed by another call to the procedure.  Procedures also permit the redeclaration of variables.  The compiler searches the most recent procedure first, then any other nested procedures, then global references, then built-in functions.\
 	      This XPL compiler implements nested functions without support for nested functions in the target C compiler.  In order to do this most of the variables in the outer function have to be promoted to global scope.  This changes where the variables are allocated.  Normally they would be allocated on the stack but a nested function will cause them to be static in the generated C code.  The XPL compiler will display a list of variables that have been promoted to global scope when using the $D option to dump internal tables at the end of compilation.\
 \
-4.3	Call and Return\
+4.5	Call and Return\
 
 \f1\b \
 	<return statement> ::= return\
@@ -403,13 +436,13 @@ Daniel Weaver\
 \b <expression>
 \b0  on the RETURN statement will be the exit code of the program.\
  \
-4.4	Recursive procedures\
+4.6	Recursive procedures\
 \
 	      XPL does not support recursion.  Just because the compiler target is a recursive language does not make the resulting code recursive.  Nested procedures cause local variables to be declared static.  In order to do garbage collection all character strings are allocated in a single array.  Character strings may not be allocated on the stack.  This prevents subroutines and functions from being recursive.\
 \
-4.5	What happened to the main procedure?\
+4.7	What happened to the main procedure?\
 \
-	     XPL does not used a main procedure like in PL/I or C.  Statements that are not enclosed within a procedure are assumed to be the start of execution.  These statements appear as though they were enclosed on a PL/I procedure with 
+	     XPL does not used a main procedure like in PL/I or C.  Statements that are not enclosed within a procedure are assumed to be the start of execution.  These statements appear as though they were enclosed in a PL/I procedure with 
 \b procedure options(main)
 \b0 .  
 \b main
@@ -428,7 +461,7 @@ Daniel Weaver\
 		eof;
 \b0 \
 \
-4.6	Calling XPL from some other language\
+4.8	Calling XPL from some other language\
 \
 	     An XPL program may be called from a program written in some other language.  This is signaled to the compiler by using the 
 \b -m
@@ -468,7 +501,7 @@ Daniel Weaver\
 			xpl_code();\
 			/* Be careful when naming the XPL functions.  Choose an\
 			<identifier> that is legal in both languages.  e.g. Don\'92t\
-			define a function build#value. */\
+			define a function like build#value. */\
 			return 0;\
  		\}
 \b0 \
@@ -576,7 +609,7 @@ Daniel Weaver\
 \f0\b0 \
 \
 	        It is a little known fact that the DO loop was invented by a file clerk who worked for a small computer manufacturer at Hursley Laboratory in the UK.  The programmers in this computer company spent much of their time in committee designing large compiler projects.  The statements made in each meeting had to be numbered, filed and sent back to committee for review.  The file clerk, whose name is David Owens, was given the task of filing the results of the meetings.  David initialed each report before sending it back to the committee.  The committee came to refer to the iterative processing of statements as the David Owens loop, or DO loop for short.\
-	      The DO loop provides iterative execution of a group of statements a certain number of times.  The DO loop provides a start value, and end value and an optional increment.  When the DO loop begins it sets the iteration variable to the start value.  If the iteration variable exceeds the end value then the body of the DO loop is never executed.  Otherwise the statements within the DO loop are executed.  After executing the statements in the loop, the variable is incremented by the expression in the BY clause of the DO statement.  Then the whole process repeats.  If the BY clause is omitted an increment of one is used.  Negative constants are permitted in the DO loop BY clause but all non-constant expressions are considered positive.  The DO loop variable may not be indexed.  The escape value and loop increment can not be changed from within the DO loop, but the DO loop variable may be modified by the statements within the loop.  Here are some examples:\
+	      The DO loop provides iterative execution of a group of statements a certain number of times.  The DO loop provides a start value, and end value and an optional increment.  When the DO loop begins it sets the iteration variable to the start value.  If the iteration variable exceeds the end value then the body of the DO loop is never executed.  Otherwise the statements within the DO loop are executed.  After executing the statements in the loop, the variable is incremented by the expression in the BY clause of the DO statement.  Then the whole process repeats.  If the BY clause is omitted an increment of one is used.  Negative constants are permitted in the DO loop BY clause but all non-constant expressions are assumed to be positive.  The DO loop variable may not be indexed.  The escape value and loop increment can not be changed from within the DO loop, but the DO loop variable may be modified by the statements within the loop.  Here are some examples:\
 \
 		
 \b declare c character, k fixed;\
@@ -761,6 +794,7 @@ Daniel Weaver\
 		a(3) = 2;
 \b0 \
 \
+	12) Macros are placed in the symbol table and have scope.  Macros defined within a procedure are undefined at the close of the procedure.  XPL69 put macros in a global table and they lasted until the end of the program even if they were defined within a procedure.\
 \
 Appendix A --- Compiler Options --- \
 \
@@ -959,7 +993,29 @@ Appendix B --- Built-in Functions --- \
 				extern char * user_string;
 \b0 \
 \
-			      Inline may also be used as a function on either the left or the right of the assignment operator.  Example:\
+			      If inline is called with multiple arguments the strings will be concatenated and placed on the same line.  For example:\
+				
+\b call inline('int stuff;', 'stuff = 6;');
+\b0 \
+			Will generate the following code:\
+				
+\b int stuff;stuff = 6;
+\b0 \
+\
+			The XPL compiler will sometimes mangle names when translating to C code.  The inline function can access these names by placing the identifier as an argument without quotes.  Example:\
+				
+\b abc: procedure(xyz);\
+					call inline(xyz, ' = some_function();');\
+				end abc;
+\b0 \
+			Generates the code:\
+				
+\b void abc(__xpl_1) \{\
+					__xpl_2_xyz = some_function();\
+				\}
+\b0 \
+\
+ 			      Inline may also be used as a function on either the left or the right of the assignment operator.  Example:\
 \
 				
 \b inline('special_value') = inline('i ^ 7');
@@ -971,7 +1027,22 @@ Appendix B --- Built-in Functions --- \
 \b special_value = i ^ 7;
 \b0 \
 \
-			      When used as a function the compiler supplies a semi colon.\
+	\
+			     The inline function may be used to access C header files.  The following code will access the socket library from XPL code.\
+\
+				call inline('#include <sys/socket.h>');\
+				call inline('#include <arpa/inet.h>');\
+				call inline('struct sockaddr_in server;');\
+\
+				declare PF_INET literally 'inline(''PF_INET'')';\
+				declare PF_INET6 literally 'inline(''PF_INET6'')';\
+\
+				declare SOCK_STREAM literally 'inline(''SOCK_STREAM'')';\
+				declare SOCK_DGRAM literally 'inline(''SOCK_DGRAM'')';\
+				declare SOCK_RAW literally 'inline(''SOCK_RAW'')';\
+\
+				inline('server.sin_family') = AF_INET;\
+\
 \
 	input(unit)	A CHARACTER function that reads one record from the specified 
 \b unit
