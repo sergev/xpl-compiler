@@ -1,5 +1,5 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf100
-{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fmodern\fcharset0 Courier-Bold;}
 {\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red255\green255\blue255;\red26\green26\blue26;
 \red246\green247\blue249;}
 {\*\expandedcolortbl;;\csgenericrgb\c0\c0\c0;\csgenericrgb\c100000\c100000\c100000;\cssrgb\c13333\c13333\c13333;
@@ -31,28 +31,21 @@ Daniel Weaver\
 \
 1.3	Installation\
 \
-	      It is my hope that the XPL compiler will run straight out of the box but you still may need to tweak it to get BIT(64) integers to work.  If your C compiler does not support 
-\b long long
-\b0  variables then you should change the file 
-\b xpl.h
-\b0  so that the line defining XPL_LONG sets it to just 
-\b long
-\b0 .  Like this:\
-		#define XPL_LONG long\
-	Or you might need to do this:\
-		#define XPL_LONG __int64\
+	      It is my hope that the XPL compiler will run straight out of the box but you still may need to tweak it to get BIT(64) integers to work.  Look at the file xpl.h and check the definitions for XPL_LONG, XPL_UNSIGNED_LONG and XPL_ADDRESS.  If your compiler does not support the C99 (or later) standard then you may need to tweak these typedefs to get BIT(64) to work properly.\
 \
 2.0	Constants, Identifiers and Comments\
 \
 2.1	Identifiers\
 \
 	      An identifier is an alphabetic (A thru Z, a thru z, #, $, @, and _) optionally followed by any number of alphabetics or numbers (0 thru 9).  The first 256 characters of the identifier must be unique.  Generally speaking, the compiler loves long names, but identifiers longer than 23 characters will smear the symbol table dump.  Keywords in XPL are reserved and may not be used as identifiers.  The following symbols are reserved in XPL:\
-\
-		
-\b bit		character	end		goto		literally	then\
-		by		declare	eof		if		mod		to\
-		call		do		fixed		initial		procedure	while\
-		case		else		go		label		return		xor
+
+\b \
+		bit		declare	external	initial		return		xor\
+		by		do		fixed		label		then\
+		call		else		go		literally	to\
+		case		end		goto		mod		transparent\
+		character	eof		if		procedure	while\
+
 \b0 \
 \
 2.2	Character string constants\
@@ -63,57 +56,44 @@ Daniel Weaver\
 		'I''m very serious.  And stop calling me Shirley.'\
 \
 2.3	Integer constants\
-\
 		
-\b <number> ::= <integer>\
-		<number> ::= <bit string>\
-\
-		<integer> ::= <decimal digit>\
-		<integer> ::= <integer> <decimal digit>\
-\
-		<decimal digit> ::= 0|1|2|3|4|5|6|7|8|9
-\b0 \
-\
+\f1\b \
+	<number> ::= <integer>\
+	         | <bit string>\
+	<integer> ::= <decimal digit>\
+	          | <integer> <decimal digit>\
+	<decimal digit> ::= 0|1|2|3|4|5|6|7|8|9\
+
+\f0\b0 \
 	      Integer constants are made up of the digits 0 thru 9.  Decimal numbers may not have embedded blanks.  Examples:\
 		10	42	32768\
 	Negative numbers are supported but they are actually expressions.\
 \
 2.4	Bit Strings\
-\
-		
-\b <bit string> ::= "<bit list>"\
-\
-		<bit list> ::= <hex integer>\
-		<bit list> ::= <bit group>\
-		<bit list> ::= <bit list> <bit group>\
-\
-		<bit group> ::= (1)<binary integer>\
-		<bit group> ::= (2)<quartal integer>\
-		<bit group> ::= (3)<octal integer>\
-		<bit group> ::= (4)<hex integer>\
-		<bit group> ::= (<number>)<extended hexadecimal>\
-\
-		<binary integer> ::= <binary digit>\
-		<binary integer> ::= <binary integer> <binary digit>\
-\
-		<binary digit> ::= 0|1\
-\
-		<quartal integer> ::= <quartal digit>\
-		<quartal integer> ::= <quartal integer> <quartal digit> \
-\
-		<quartal digit> ::= 0|1|2|3\
-\
-		<octal integer> ::= <octal digit>\
-		<octal integer> ::= <octal integer> <octal digit>\
-\
-		<octal digit> ::= 0|1|2|3|4|5|6|7\
-\
-		<hex integer> ::= <hex digit>\
-		<hex integer> ::= <hex integer> <hex digit>\
-\
-		<hex digit> ::= 0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F
-\b0 \
-\
+
+\f1\b \
+	<bit string> ::= "<bit list>"\
+	<bit list> ::= <hex integer>\
+	           | <bit group>\
+	           | <bit list> <bit group>\
+	<bit group> ::= (1)<binary integer>\
+	            | (2)<quartal integer>\
+	            | (3)<octal integer>\
+	            | (4)<hex integer>\
+	            | (<number>)<extended hexadecimal>\
+	<binary integer> ::= <binary digit>\
+	                 | <binary integer> <binary digit>\
+	<binary digit> ::= 0|1\
+	<quartal integer> ::= <quartal digit>\
+	                  | <quartal integer> <quartal digit> \
+	<quartal digit> ::= 0|1|2|3\
+	<octal integer> ::= <octal digit>\
+	                | <octal integer> <octal digit>\
+	<octal digit> ::= 0|1|2|3|4|5|6|7\
+	<hex integer> ::= <hex digit>\
+	              | <hex integer> <hex digit>\
+	<hex digit> ::= 0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F|a|b|c|d|e|f
+\f0\b0 \
 \
 	      Binary, octal, and hexadecimal are supported and require the number to be enclosed in double quotes.  The number of bits in the radix can be explicitly changed by enclosing a small constant in parentheses.  The default radix is 16 so the default number of bits needed for each digit is 4.   The radix may be changed within a number by supplying a new base in parentheses.  Blanks may be used within bit strings.  Macros are not recognized within bit strings.  Examples:\
 \
@@ -127,15 +107,13 @@ Daniel Weaver\
 	      All character string and bit string constants are null terminated.  Dynamically created strings do not have a null terminator.\
 \
 2.5	Extended hexadecimal bit strings\
-\
 
-\b 		<bit group> ::= (<number>)<extended hexadecimal>\
-\
-		<extended hexadecimal> ::= <hex digit>\
-		<extended hexadecimal> ::= <extended hexadecimal> <hex digit>\
-\
-		<hex digit> ::= 0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F
-\b0 \
+\f1\b \
+ 	<bit group> ::= (<number>)<extended hexadecimal>\
+	<extended hexadecimal> ::= <hex digit>\
+	                       | <extended hexadecimal> <hex digit>\
+	<hex digit> ::= 0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F|a|b|c|d|e|f
+\f0\b0 \
 \
 	      As an extension to the XPL language, this compiler allows the base to be any number between 1 and 64 (32 for a 32 bit machine).  This allows you to use values that are wider than 4 bits and aligned on arbitrary boundaries.  When using this feature a blank will terminate the bit field.\
 	     Let\'92s say you have a 16 bit opcode where the most significant bit is a one bit field and the remainder of the opcode is three five bit fields.  For this example the left most bit is zero and all three five bit fields are set to one.  Using simple <bit string> and hexadecimal the value would be "0421".  It is possible to render the string with a mix of binary and hexadecimal "(1) 0 0 (4)1 (1)0 (4)1 (1)0 (4)1".  This is not very easy to read.  However if you use <extended hexadecimal>  the bit string becomes "(1)0 (5)01 01 01".  Which is much easier to read.\
@@ -206,19 +184,17 @@ Daniel Weaver\
 3.	Declarations and Data Types\
 \
 3.1	Data Types\
+
+\f1\b \
+	<type> ::= fixed\
+	       | character\
+	       | label\
+	       | <bit head> <expression> )\
+	       | <character head> <expression> )\
+	<bit head> ::= bit (\
+	<character head> ::= character (
+\f0\b0 \
 \
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf2 		
-\b <type> ::= fixed\
-		<type> ::= character\
-		<type> ::= label\
-		<type> ::= <bit head> <expression> )\
-		<type> ::= <character head> <expression> )\
-		<bit head> ::= bit (\
-		<character head> ::= character (
-\b0 \
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li721\fi-722\ri-2152\pardirnatural\partightenfactor0
-\cf2 \
 	      The XPL compiler supports 8 data types that may be used for data storage or arithmetic expressions.  Identifiers declared as BIT(1) are assumed to be boolean values that hold only the value of 0 or 1.  They are allocated as 
 \i unsigned char
 \i0  and may be used in arithmetic expressions.  Identifiers declared as BIT(2) thru BIT(8) are also allocated as 
@@ -240,22 +216,36 @@ Daniel Weaver\
 	      The fixed length CHARACTER format e.g. CHARACTER(5) is used much like dynamic character strings except that it allocates a dedicated storage area to hold he string.  All fixed length strings are null terminated.  When the string is used as a source the compiler creates a descriptor that holds the address and length of the string.  The descriptor format is exactly like the descriptors used for variable length strings.  The length of the string is created by finding the null terminator.  When a fixed length string is used in a store operation the data in the string is copied to the storage area of the fixed length string and a null terminator is attached to the end of the string.  If the string is longer than the space allotted to the fixed length string the string will be truncated and the null terminator will be placed in the last byte of the string.  Fixed length strings are designed to help interface to programs written in C.\
 	      The LABEL declaration type is used for GOTO's and forward procedure calls.\
 \
-3.2	Declarations\
+3.2	Address type\
 \
+	      The XPL compiler defines a macro that describes an address type.  On machines that have a 32-bit address the macro will be:\
 		
-\b <declaration statement> ::= declare <declaration element>\
-		<declaration statement> ::= <declaration statement> , <declaration element>\
-		<declaration element> ::= <type declaration>\
-		<declaration element> ::= <identifier> literally <string>\
-		<type declaration> ::= <identifier specification> <type>\
-		<type declaration> ::= <bound head> <expression> ) <type>\
-		<type declaration> ::= <type declaration> <initial list>\
-		<identifier specification> ::= <identifier>\
-		<identifier specification> ::= <identifier list> <identifier> )\
-		<identifier list> ::= (\
-		<identifier list> ::= <identifier list> <identifier> ,\
-
+\b declare address literally \'91bit(32)\'92;
 \b0 \
+	On machines that have a 64-bit address the macro will be:\
+		
+\b declare address literally \'91bit(64)\'92;
+\b0 \
+	 The identifier 
+\i address
+\i0  is not a reserved word.\
+\
+3.3	Declarations\
+
+\f1\b \
+	<declaration statement> ::= declare <declaration element>\
+	          | <declaration statement> , <declaration element>\
+	<declaration element> ::= <type declaration>\
+	                      | <identifier> literally <string>\
+	<type declaration> ::= <identifier specification> <type>\
+	                   | <bound head> <expression> ) <type>\
+	                   | <type declaration> <initial list>\
+	<identifier specification> ::= <identifier>\
+	                   | <identifier list> <identifier> )\
+	<identifier list> ::= (\
+	                  | <identifier list> <identifier> ,\
+
+\f0\b0 \
 	      If you're gonna use XPL you gotta DECLARE all your variables.  The DECLARE statement associates identifiers with various attributes and allocates memory.  The following statement will declare I, J, and K to be 32 bit integers.\
 		
 \b declare i bit(32), j bit(32), k bit(32);
@@ -277,14 +267,14 @@ Daniel Weaver\
 \b declare (dopey, grumpy, sneezy) (6) bit(32);
 \b0 \
 \
-3.3	Initialization\
-\
+3.4	Initialization\
 
-\b 		<initial list> ::= <initial head> <expression> )\
-		<initial head> ::= initial (\
-		<initial head> ::= <initial head> <expression> ,\
+\f1\b \
+	<initial list> ::= <initial head> <expression> )\
+	<initial head> ::= initial (\
+	               | <initial head> <expression> ,\
 
-\b0 \
+\f0\b0 \
 	      All static variables are set to zero when the program starts execution unless explicitly initialized by the INITIAL clause of the DECLARE statement.  The INITIAL clause sets a value into the data when the program starts.  The INITIAL value may be a character string constant or an integer expression.\
 	      The INITIAL clause may be used to initialize arrays.  When initializing arrays, the first value is stored into the first element of the array (index zero), the second value is placed into the second element and so on.  If the number of values is less than the number of elements in the array, the balance of the array is set to zero (or the null string if a CHARACTER array).  Example:\
 		
@@ -297,7 +287,7 @@ Daniel Weaver\
 \
 	     This is different from the INITIAL statement defined by the PL/I language.  XPL INITIAL statements allow expressions but do not allow repetition factors.\
 \
-3.4	Macro Definitions\
+3.5	Macro Definitions\
 \
 	      XPL provides a simple text substitution macro.  Each time the macro name occurs in the input text the compiler replaces the identifier name with the specified text. This feature is very useful for defining array bounds or abbreviations.  The following example shows its usefulness:\
 		
@@ -327,23 +317,28 @@ Daniel Weaver\
 4.	Procedures\
 \
 4.1	Functions and Subroutines\
-\
 
-\b 		<basic statement> ::= <procedure definition> ;\
-		<procedure definition> ::= <procedure head> <statement list> <ending>\
-		<procedure head> ::= <procedure name> ;\
-		<procedure head> ::= <procedure name> <type> ;\
-		<procedure head> ::= <procedure name> <parameter list> ;\
-		<procedure head> ::= <procedure name> <parameter list> <type> ;\
-		<procedure name> ::= <label definition> procedure\
-		<parameter list> ::= <parameter head> <identifier> )\
-		<parameter head> ::= (\
-		<parameter head> ::= <parameter head> <identifier> ,\
-		<ending> ::= end\
-		<ending> ::= end <identifier>\
-		<ending> ::= <label definition> <ending>\
-		<label definition> ::= <identifier> :
-\b0 \
+\f1\b \
+	<basic statement> ::= <procedure definition> ;\
+	
+\fs22 <procedure definition> ::= <procedure statement> <statement list> <ending>
+\fs24 \
+	<procedure statement> ::= <procedure head> ;\
+	                      | <procedure head> external\
+	                      | <procedure head> transparent\
+	<procedure head> ::= <procedure name>\
+	                 | <procedure name> <type>\
+	                 | <procedure name> <parameter list>\
+	                 | <procedure name> <parameter list> <type>\
+	<procedure name> ::= <label definition> procedure\
+	<parameter list> ::= <parameter head> <identifier> )\
+	<parameter head> ::= (\
+	                 | <parameter head> <identifier> ,\
+	<ending> ::= end\
+	         | end <identifier>\
+	         | <label definition> <ending>\
+	<label definition> ::= <identifier> :
+\f0\b0 \
 \
 	      The procedure is a clever device designed to facilitate the grouping of mutually confusing statements so that they may be ignored en mass.  Procedures that do not return a value are called subroutines.  Subroutines must be called with the CALL statement.  Procedures that return values are functions.  Functions may be referenced as variables or called with the CALL statement.  All procedures must be defined or declared before they are referenced.  The procedure is defined when the body of the procedure appears in the input text.  Procedures need not have any parameters but if any parameters are used they must be DECLAREd before they are referenced within the body of the procedure.  Below is an example of a valid subroutine definition:\
 \
@@ -389,13 +384,13 @@ Daniel Weaver\
 	      This XPL compiler implements nested functions without support for nested functions in the target C compiler.  In order to do this most of the variables in the outer function have to be promoted to global scope.  This changes where the variables are allocated.  Normally they would be allocated on the stack but a nested function will cause them to be static in the generated C code.  The XPL compiler will display a list of variables that have been promoted to global scope when using the $D option to dump internal tables at the end of compilation.\
 \
 4.3	Call and Return\
-\
 
-\b 		<return statement> ::= return\
-		<return statement> ::= return <expression>\
-		<call statement> ::= call <variable>\
+\f1\b \
+	<return statement> ::= return\
+	                   | return <expression>\
+	<call statement> ::= call <variable>\
 
-\b0 \
+\f0\b0 \
 	      Procedures may be invoked by the CALL statement.  When a function is invoked by the CALL statement the value returned by the function is discarded.  Functions may also be referenced as variables within expressions.  Example: \
 \
 		
@@ -468,10 +463,12 @@ Daniel Weaver\
 			if (__xpl_runtime_init(0)) return 1;\
 			__xpl_init_strings();\
 \
-			/* Call any XPL function or procedure with the name used in the XPL code. */\
+			/* Call any XPL function or procedure with the name used\
+			in the XPL code. */\
 			xpl_code();\
-			/* Be careful when naming the XPL functions.  Choose an <identifier> that is\
-			legal in both languages.  e.g. Don\'92t define a function build#value. */\
+			/* Be careful when naming the XPL functions.  Choose an\
+			<identifier> that is legal in both languages.  e.g. Don\'92t\
+			define a function build#value. */\
 			return 0;\
  		\}
 \b0 \
@@ -481,15 +478,15 @@ Daniel Weaver\
 5.	Control Flow\
 \
 5.1	IF THEN ELSE\
-\
 
-\b 		<if statement> ::= <if clause> <statement>\
-		<if statement> ::= <if clause> <true part> <statement>\
-		<if statement> ::= <label definition> <if statement>\
-		<if clause> ::= if <expression> then\
-		<true part> ::= <basic statement> else\
+\f1\b \
+ 	<if statement> ::= <if clause> <statement>\
+	               | <if clause> <true part> <statement>\
+	               | <label definition> <if statement>\
+	<if clause> ::= if <expression> then\
+	<true part> ::= <basic statement> else\
 
-\b0 \
+\f0\b0 \
 	      IF statements provide the programmer with a method to conditionally execute statements.  The statement following the THEN will be executed if the expression is true.  The ELSE statement will be executed, if one exists, if the expression is false.  If the expression is a logical variable or an integer the low order bit is tested to determine true or false.  Integers are true if the low order bit is one and false if the low order bit is zero.  Character strings may not be used as logical variables.  It is illegal to have two ELSE statements in a row.  This handicap may be circumvented by nesting the inner most IF/THEN/ELSE in a DO/END group.\
 \
 		
@@ -521,14 +518,14 @@ Daniel Weaver\
 
 \b0 \
 5.2	DO CASE\
-\
 
-\b 		<group> ::= <group head> <ending>\
-		<group head> ::= do <case selector> ;\
-		<group head> ::= <group head> <statement>\
-		<case selector> ::= case <expression>\
+\f1\b \
+ 	<group> ::= <group head> <ending>\
+	<group head> ::= do <case selector> ;\
+	             | <group head> <statement>\
+	<case selector> ::= case <expression>\
 
-\b0 \
+\f0\b0 \
 	      The DO CASE statement uses the expression to select the Nth statement within the body of the DO group.  After the statement is executed control is returned to the CASE's END statement.  Statements are numbered from zero starting from the first statement after the DO CASE.  If the expression is negative or larger than the number of statements in the DO CASE, a random jump will be executed (Crash City).  Below is an example of a valid CASE statement:\
 \
 		
@@ -544,14 +541,14 @@ Daniel Weaver\
 \
 \
 5.3	DO WHILE\
-\
 
-\b 		<group> ::= <group head> <ending>\
-		<group head> ::= do <while clause> ;\
-		<group head> ::= <group head> <statement>\
-		<while clause> ::= while <expression>\
+\f1\b \
+ 	<group> ::= <group head> <ending>\
+	<group head> ::= do <while clause> ;\
+	             | <group head> <statement>\
+	<while clause> ::= while <expression>\
 
-\b0  \
+\f0\b0 \
 	      The DO WHILE statement will loop until the expression becomes false.  The expression is evaluated before the loop is entered.  If the expression is false the body of the DO WHILE is never executed.  Integers are true if the low order bit is one and false if the low order bit is zero.  If the expression is false control is passed to the statement after the END statement.  Below is an example of a valid DO WHILE statement. \
 \
 		
@@ -566,15 +563,17 @@ Daniel Weaver\
 \b0 \
 \
 5.4	DO Loops\
-\
 
-\b 		<group> ::= <group head> <ending>\
-		<group head> ::= do <step definition> ;\
-		<group head> ::= <group head> <statement>\
-		<step definition> ::= <variable> <replace> <expression> <iteration control>\
-		<iteration control> ::= to <expression>\
-		<iteration control> ::= to <expression> by <expression>
-\b0 \
+\f1\b \
+ 	<group> ::= <group head> <ending>\
+	<group head> ::= do <step definition> ;\
+	             | <group head> <statement>\
+	
+\fs22 <step definition> ::= <variable> <replace> <expression> <iteration control>
+\fs24 \
+	<iteration control> ::= to <expression>\
+	                    | to <expression> by <expression>
+\f0\b0 \
 \
 	        It is a little known fact that the DO loop was invented by a file clerk who worked for a small computer manufacturer at Hursley Laboratory in the UK.  The programmers in this computer company spent much of their time in committee designing large compiler projects.  The statements made in each meeting had to be numbered, filed and sent back to committee for review.  The file clerk, whose name is David Owens, was given the task of filing the results of the meetings.  David initialed each report before sending it back to the committee.  The committee came to refer to the iterative processing of statements as the David Owens loop, or DO loop for short.\
 	      The DO loop provides iterative execution of a group of statements a certain number of times.  The DO loop provides a start value, and end value and an optional increment.  When the DO loop begins it sets the iteration variable to the start value.  If the iteration variable exceeds the end value then the body of the DO loop is never executed.  Otherwise the statements within the DO loop are executed.  After executing the statements in the loop, the variable is incremented by the expression in the BY clause of the DO statement.  Then the whole process repeats.  If the BY clause is omitted an increment of one is used.  Negative constants are permitted in the DO loop BY clause but all non-constant expressions are considered positive.  The DO loop variable may not be indexed.  The escape value and loop increment can not be changed from within the DO loop, but the DO loop variable may be modified by the statements within the loop.  Here are some examples:\
@@ -597,48 +596,48 @@ Daniel Weaver\
 \b0 \
 \
 5.5	GO TO\
-\
 
-\b 		<basic statement> ::= <go to statement> ;\
+\f1\b \
+ 		<basic statement> ::= <go to statement> ;\
 		<go to statement> ::= <go to> <identifier>\
 		<go to> ::= go to\
-		<go to> ::= goto\
+		        | goto\
 
-\b0 \
-	      The GOTO statement should be used only under extreme conditions, such as "My computer is on fire."  Indiscriminate use of the GOTO will brand you forever as an unstructured programmer and cause you to be deleted from my Christmas card list.  In the off chance that your computer is on fire, the following rules must be observed;  The label must be DECLAREd if it is to be used as an argument to the ADDR function before it is referenced.  The label must be DECLAREd if referenced within a procedure before it is defined and that same identifier is declared outside of the procedure.  GOTO statements may not jump into or out of a procedure.  Indexes are not permitted on GOTO statements.  \
+\f0\b0 \
+	      The GOTO statement should be used only under extreme conditions, such as "My computer is on fire."  Indiscriminate use of the GOTO will brand you forever as an unstructured programmer and cause you to be deleted from my Christmas card list.  In the off chance that your computer is on fire, the following rules must be observed;  The label must be DECLAREd if it is to be used as an argument to the ADDR function before it is referenced.  The label must be DECLAREd if referenced within a procedure before it is defined and that same identifier is declared outside of the procedure.  GOTO statements may not jump into or out of a procedure.  Indexes are not permitted on GOTO statements.\
 \
 6.	Expressions\
-\
 
-\b 		<expression> ::= <logical factor>\
-		<expression> ::= <expression> | <logical factor>\
-		<expression> ::= <expression> xor <logical factor>\
-		<logical factor> ::= <logical secondary>\
-		<logical factor> ::= <logical factor> & <logical secondary>\
-		<logical secondary> ::= <logical primary>\
-		<logical secondary> ::= ~ <logical primary>\
-		<logical primary> ::= <string expression>\
-		<logical primary> ::= <string expression> <relation> <string expression>\
-		<relation> ::= =\
-		<relation> ::= <\
-		<relation> ::= >\
-		<relation> ::= ~ =\
-		<relation> ::= ~ <\
-		<relation> ::= ~ >\
-		<relation> ::= < =\
-		<relation> ::= > =\
-		<string expression> ::= <arithmetic expression>\
-		<string expression> ::= <string expression> || <arithmetic expression>\
-		<arithmetic expression> ::= <term>\
-		<arithmetic expression> ::= <arithmetic expression> + <term>\
-		<arithmetic expression> ::= <arithmetic expression> - <term>\
-		<arithmetic expression> ::= + <term>\
-		<arithmetic expression> ::= - <term>\
-		<term> ::= <primary>\
-		<term> ::= <term> * <primary>\
-		<term> ::= <term> / <primary>\
-		<term> ::= <term> mod <primary>
-\b0 \
+\f1\b \
+ 	<expression> ::= <logical factor>\
+	             | <expression> | <logical factor>\
+	             | <expression> xor <logical factor>\
+	<logical factor> ::= <logical secondary>\
+	                 | <logical factor> & <logical secondary>\
+	<logical secondary> ::= <logical primary>\
+	                    | ~ <logical primary>\
+	<logical primary> ::= <string expression>\
+	       | <string expression> <relation> <string expression>\
+	<relation> ::= =\
+	           | <\
+	           | >\
+	           | ~ =\
+	           | ~ <\
+	           | ~ >\
+	           | < =\
+	           | > =\
+	<string expression> ::= <arithmetic expression>\
+	      | ::= <string expression> || <arithmetic expression>\
+	<arithmetic expression> ::= <term>\
+	                        | <arithmetic expression> + <term>\
+	                        | <arithmetic expression> - <term>\
+	                        | + <term>\
+	                        | - <term>\
+	<term> ::= <primary>\
+	       | * <primary>\
+	       | / <primary>\
+	       | mod <primary>
+\f0\b0 \
 \
 	     The carrot (^) may be used instead of a tilde (~).\
 \
@@ -751,15 +750,15 @@ Daniel Weaver\
 \b0 .  This allowed their values to be retained across procedure calls.  This XPL compiler puts some variables on the stack which makes them lose their value when the procedure exits.\
 \
 	10) Variables that are not declared as arrays may not have a subscript.  XPL69 allowed all variables to be subscripted.  For example the following is illegal:\
-	
+		
 \b declare a fixed, b(20) fixed;\
-	a(3) = 2;   /* This is ILLEGAL */
+		a(3) = 2;   /* This is ILLEGAL */
 \b0 \
 \
 	11) The order of variables in memory may not resemble XPL69.  The original XPL compiler used the order of declaration to simulate overlapping memory something similar to the UNION declaration in C.  The following is legal but probably won\'92t work:\
-	
+		
 \b declare a(0) fixed, b(255) bit(8);\
-	a(3) = 2;
+		a(3) = 2;
 \b0 \
 \
 \
@@ -776,10 +775,8 @@ Appendix A --- Compiler Options --- \
 	      D - Dump stats at the end of compilation\
 	      G - 32 bit machine (2 Gig address space)\
 	      H - Hide identifiers from the C compiler\
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf2 	         I - Ignore case for keywords and builtin functions\
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li721\fi-722\ri-2152\pardirnatural\partightenfactor0
-\cf2 	      K - Emit Linemarkers for the C compiler\
+	      I - Ignore case for keywords and builtin functions\
+	      K - Emit Linemarkers for the C compiler\
 	      L - List source\
 	      m - Do not generate code for main()\
 	      M - Minimal source listing; takes precedence over -L\
@@ -872,7 +869,7 @@ Appendix B --- Built-in Functions --- \
 \b byte()
 \b0  function can be used with both dynamic CHARACTER strings as well as fixed length strings.\
 \
-	byte(string)	Short form of the above function which refers to the first element of the string.  This is equivalent to byte(string, 0).  The form of the byte() function is commonly used to convert string constants to integers.  For example:\
+	byte(string)	Short form of the above function which refers to the first element of the string.  This is equivalent to byte(string, 0).  This form of the byte() function is commonly used to convert string constants to integers.  For example:\
 				
 \b if byte(string, position) = byte(';') then do; /* process semicolon */ end;
 \b0 \
@@ -1239,117 +1236,124 @@ Appendix C --- Format strings ---\
 \cf2 \
 Appendix D --- BNF ---\
 
-\b \
+\f1\b \
 	<program> ::= <statement list>\
 	<statement list> ::= <statement>\
-	<statement list> ::= <statement list> <statement>\
+	                 | <statement list> <statement>\
 	<statement> ::= <basic statement>\
-	<statement> ::= <if statement>\
+	            | <if statement>\
 	<basic statement> ::= <assignment> ;\
-	<basic statement> ::= <group> ;\
-	<basic statement> ::= <procedure definition> ;\
-	<basic statement> ::= <return statement> ;\
-	<basic statement> ::= <call statement> ;\
-	<basic statement> ::= <go to statement> ;\
-	<basic statement> ::= <declaration statement> ;\
-	<basic statement> ::= ;\
-	<basic statement> ::= <label definition> <basic statement>\
+	                  | <group> ;\
+	                  | <procedure definition> ;\
+	                  | <return statement> ;\
+	                  | <call statement> ;\
+	                  | <go to statement> ;\
+	                  | <declaration statement> ;\
+	                  | ;\
+	                  | <label definition> <basic statement>\
 	<if statement> ::= <if clause> <statement>\
-	<if statement> ::= <if clause> <true part> <statement>\
-	<if statement> ::= <label definition> <if statement>\
+	               | <if clause> <true part> <statement>\
+	               | <label definition> <if statement>\
 	<if clause> ::= if <expression> then\
 	<true part> ::= <basic statement> else\
 	<group> ::= <group head> <ending>\
 	<group head> ::= do ;\
-	<group head> ::= do <step definition> ;\
-	<group head> ::= do <while clause> ;\
-	<group head> ::= do <case selector> ;\
-	<group head> ::= <group head> <statement>\
-	<step definition> ::= <variable> <replace> <expression> <iteration control>\
+	             | do <step definition> ;\
+	             | do <while clause> ;\
+	             | do <case selector> ;\
+	             | <group head> <statement>\
+	
+\fs22 <step definition> ::= <variable> <replace> <expression> <iteration control>
+\fs24 \
 	<iteration control> ::= to <expression>\
-	<iteration control> ::= to <expression> by <expression>\
+	                    | to <expression> by <expression>\
 	<while clause> ::= while <expression>\
 	<case selector> ::= case <expression>\
-	<procedure definition> ::= <procedure head> <statement list> <ending>\
-	<procedure head> ::= <procedure name> ;\
-	<procedure head> ::= <procedure name> <type> ;\
-	<procedure head> ::= <procedure name> <parameter list> ;\
-	<procedure head> ::= <procedure name> <parameter list> <type> ;\
+	<procedure definition> ::= <procedure statement> <statement list> <ending>\
+	<procedure statement> ::= <procedure head> ;\
+	                      | <procedure head> external\
+	                      | <procedure head> transparent\
+	<procedure head> ::= <procedure name>\
+	                 | <procedure name> <type>\
+	                 | <procedure name> <parameter list>\
+	                 | <procedure name> <parameter list> <type>\
 	<procedure name> ::= <label definition> procedure\
 	<parameter list> ::= <parameter head> <identifier> )\
 	<parameter head> ::= (\
-	<parameter head> ::= <parameter head> <identifier> ,\
+	                 | <parameter head> <identifier> ,\
 	<ending> ::= end\
-	<ending> ::= end <identifier>\
-	<ending> ::= <label definition> <ending>\
+	         | end <identifier>\
+	         | <label definition> <ending>\
 	<label definition> ::= <identifier> :\
 	<return statement> ::= return\
-	<return statement> ::= return <expression>\
+	                   | return <expression>\
 	<call statement> ::= call <variable>\
 	<go to statement> ::= <go to> <identifier>\
 	<go to> ::= go to\
-	<go to> ::= goto\
+	        | goto\
 	<declaration statement> ::= declare <declaration element>\
-	<declaration statement> ::= <declaration statement> , <declaration element>\
+	        | <declaration statement> , <declaration element>\
 	<declaration element> ::= <type declaration>\
-	<declaration element> ::= <identifier> literally <string>\
+	                      | <identifier> literally <string>\
 	<type declaration> ::= <identifier specification> <type>\
-	<type declaration> ::= <bound head> <expression> ) <type>\
-	<type declaration> ::= <type declaration> <initial list>\
+	                   | <bound head> <expression> ) <type>\
+	                   | <type declaration> <initial list>\
 	<type> ::= fixed\
-	<type> ::= character\
-	<type> ::= label\
-	<type> ::= <bit head> <expression> )\
-	<type> ::= <character head> <expression> )\
+	       | character\
+	       | label\
+	       | <bit head> <expression> )\
+	       | <character head> <expression> )\
 	<bit head> ::= bit (\
 	<character head> ::= character (\
 	<bound head> ::= <identifier specification> (\
 	<identifier specification> ::= <identifier>\
-	<identifier specification> ::= <identifier list> <identifier> )\
+	                  | <identifier list> <identifier> )\
 	<identifier list> ::= (\
-	<identifier list> ::= <identifier list> <identifier> ,\
+	                  | <identifier list> <identifier> ,\
 	<initial list> ::= <initial head> <expression> )\
 	<initial head> ::= initial (\
-	<initial head> ::= <initial head> <expression> ,\
+	               | <initial head> <expression> ,\
 	<assignment> ::= <variable> <replace> <expression>\
-	<assignment> ::= <left part> <assignment>\
+	             | <left part> <assignment>\
 	<replace> ::= =\
 	<left part> ::= <variable> ,\
 	<expression> ::= <logical factor>\
-	<expression> ::= <expression> | <logical factor>\
-	<expression> ::= <expression> xor <logical factor>\
+	             | <expression> | <logical factor>\
+	             | <expression> xor <logical factor>\
 	<logical factor> ::= <logical secondary>\
-	<logical factor> ::= <logical factor> & <logical secondary>\
+	         | <logical factor> & <logical secondary>\
 	<logical secondary> ::= <logical primary>\
-	<logical secondary> ::= ~ <logical primary>\
+	                    | ~ <logical primary>\
 	<logical primary> ::= <string expression>\
-	<logical primary> ::= <string expression> <relation> <string expression>\
+	     | <string expression> <relation> <string expression>\
 	<relation> ::= =\
-	<relation> ::= <\
-	<relation> ::= >\
-	<relation> ::= ~ =\
-	<relation> ::= ~ <\
-	<relation> ::= ~ >\
-	<relation> ::= < =\
-	<relation> ::= > =\
+	           | <\
+	           | >\
+	           | ~ =\
+	           | ~ <\
+	           | ~ >\
+	           | < =\
+	           | > =\
 	<string expression> ::= <arithmetic expression>\
-	<string expression> ::= <string expression> || <arithmetic expression>\
+	           | <string expression> || <arithmetic expression>\
 	<arithmetic expression> ::= <term>\
-	<arithmetic expression> ::= <arithmetic expression> + <term>\
-	<arithmetic expression> ::= <arithmetic expression> - <term>\
-	<arithmetic expression> ::= + <term>\
-	<arithmetic expression> ::= - <term>\
+	                        | <arithmetic expression> + <term>\
+	                        | <arithmetic expression> - <term>\
+	                        | + <term>\
+	                        | - <term>\
 	<term> ::= <primary>\
-	<term> ::= <term> * <primary>\
-	<term> ::= <term> / <primary>\
-	<term> ::= <term> mod <primary>\
+	       | <term> * <primary>\
+	       | <term> / <primary>\
+	       | <term> mod <primary>\
 	<primary> ::= <constant>\
-	<primary> ::= <variable>\
-	<primary> ::= ( <expression> )\
+	          | <variable>\
+	          | ( <expression> )\
 	<variable> ::= <identifier>\
-	<variable> ::= <subscript head> <expression> )\
+	           | <subscript head> <expression> )\
 	<subscript head> ::= <identifier> (\
-	<subscript head> ::= <subscript head> <expression> ,\
+	                 | <subscript head> <expression> ,\
 	<constant> ::= <string>\
 	<constant> ::= <number>\
+
+\f0\b0 \
 }
