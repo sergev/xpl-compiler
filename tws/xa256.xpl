@@ -1665,7 +1665,7 @@ punch_c_productions:
       do while length(v(j)) = i;  j = j + 1;  end;
    end;
    call punch_card (nt+1 || '};');
-   call punch_card ('unsigned char *c1[NSY + 1] = {');
+   call punch_card ('char *c1[NSY + 1] = {');
    do i = 0 to nsy;
       t = '   "';
       do j = 0 to nt by 4;

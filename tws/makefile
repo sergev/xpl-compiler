@@ -21,6 +21,9 @@ skeleton:	skeleton.xpl
 	$(XPL) -I skeleton.xpl
 	$(CC) $(CFLAGS) -I.. skeleton.c $(LIBXPL) -o skeleton
 
+xpl.msp:	xa xpl.bnf
+	./xa xpl.bnf -o xpl.msp
+
 clean:
 	rm -f *.o *.xh *.c analyzer skeleton xa
 

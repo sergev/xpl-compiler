@@ -36,11 +36,14 @@ $
                      to <expression> by <expression>
 <while clause>  while <expression>
 <case selector>  case <expression>
-<procedure definition> <procedure head> <statement list> <ending>
-<procedure head>  <procedure name> ;
-                     <procedure name> <type> ;
-                     <procedure name> <parameter list> ;
-                     <procedure name> <parameter list> <type> ;
+<procedure definition> <procedure statement> <statement list> <ending>
+<procedure statement>  <procedure head> ;
+                     <procedure head> external
+                     <procedure head> transparent
+<procedure head>  <procedure name>
+                     <procedure name> <type>
+                     <procedure name> <parameter list>
+                     <procedure name> <parameter list> <type>
 <procedure name>  <label definition> procedure
 <parameter list>  <parameter head> <identifier> )
 <parameter head>  (
