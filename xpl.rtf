@@ -72,15 +72,15 @@ Daniel Weaver\
 2.4	Bit Strings\
 
 \f1\b \
-	<bit string> ::= "<bit list>"\
+	<bit string> ::= " <bit list> "\
 	<bit list> ::= <hex integer>\
 	           | <bit group>\
 	           | <bit list> <bit group>\
-	<bit group> ::= (1)<binary integer>\
-	            | (2)<quartal integer>\
-	            | (3)<octal integer>\
-	            | (4)<hex integer>\
-	            | (<number>)<extended hexadecimal>\
+	<bit group> ::= (1) <binary integer>\
+	            | (2) <quartal integer>\
+	            | (3) <octal integer>\
+	            | (4) <hex integer>\
+	            | ( <number> ) <extended hexadecimal>\
 	<binary integer> ::= <binary digit>\
 	                 | <binary integer> <binary digit>\
 	<binary digit> ::= 0|1\
@@ -109,7 +109,7 @@ Daniel Weaver\
 2.5	Extended hexadecimal bit strings\
 
 \f1\b \
- 	<bit group> ::= (<number>)<extended hexadecimal>\
+ 	<bit group> ::= ( <number> ) <extended hexadecimal>\
 	<extended hexadecimal> ::= <hex digit>\
 	                       | <extended hexadecimal> <hex digit>\
 	<hex digit> ::= 0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F|a|b|c|d|e|f
@@ -438,7 +438,7 @@ Daniel Weaver\
  \
 4.6	Recursive procedures\
 \
-	      XPL does not support recursion.  Just because the compiler target is a recursive language does not make the resulting code recursive.  Nested procedures cause local variables to be declared static.  In order to do garbage collection all character strings are allocated in a single array.  Character strings may not be allocated on the stack.  This prevents subroutines and functions from being recursive.\
+	      XPL does not support recursion.  Just because the compiler target is a recursive language does not make the resulting code recursive.  Nested procedures cause local variables to be declared static.  In order to do garbage collection all character strings are allocated in a single array.  Character strings cannot be allocated on the stack.  This prevents subroutines and functions from being recursive.\
 \
 4.7	What happened to the main procedure?\
 \
@@ -730,7 +730,7 @@ Daniel Weaver\
 \
 	      I/O errors will set the variable 
 \b xerrno
-\b0  to the value of the errno variable which is normally set by the Operating System.\
+\b0  to the value of the errno variable which is normally set by the C runtime library.\
 \
 7.2	The Compactify Procedure\
 \
@@ -986,7 +986,7 @@ Appendix B --- Built-in Functions --- \
 \b call inline('#define MAXNAME 7');\
 				call inline('extern char * user_string;');
 \b0 \
-			Note that the semi colon is not supplied by the compiler.  The above statements will generate the following code.\
+			Note that the semicolon is not supplied by the compiler.  The above statements will generate the following code.\
 \
 			
 \b #define MAXNAME 7\
@@ -1030,7 +1030,8 @@ Appendix B --- Built-in Functions --- \
 	\
 			     The inline function may be used to access C header files.  The following code will access the socket library from XPL code.\
 \
-				call inline('#include <sys/socket.h>');\
+				
+\b call inline('#include <sys/socket.h>');\
 				call inline('#include <arpa/inet.h>');\
 				call inline('struct sockaddr_in server;');\
 \
@@ -1041,7 +1042,8 @@ Appendix B --- Built-in Functions --- \
 				declare SOCK_DGRAM literally 'inline(''SOCK_DGRAM'')';\
 				declare SOCK_RAW literally 'inline(''SOCK_RAW'')';\
 \
-				inline('server.sin_family') = AF_INET;\
+				inline('server.sin_family') = AF_INET;
+\b0 \
 \
 \
 	input(unit)	A CHARACTER function that reads one record from the specified 
@@ -1081,15 +1083,13 @@ Appendix B --- Built-in Functions --- \
 \b xfopen()
 \b0 .  Examples:\
 \
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li3590\fi-3593\ri-2152\pardirnatural\partightenfactor0
-\cf2 				
-\b output(0) = 'Hello World!';
+
+\b 				output(0) = 'Hello World!';
 \b0 	/* You were expecting this.  Right? */\
 				
 \b output(1) = 'Major error detected.';
 \b0 \
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li2150\fi-2152\ri-2152\pardirnatural\partightenfactor0
-\cf2 \
+\
 			I have chosen to follow the C convention rather than the XPL69 standard.  Seriously, when was the last time you had a line printer connected to your computer?\
 \
 	output		Same as 
@@ -1242,7 +1242,27 @@ Appendix B --- Built-in Functions --- \
 			call xfprintf(unit, "(c) I am %d years old today.\\n", age);\
 \
 
-\b0 	xprintf(format, args, \'85)	A print function that works similar to the printf function in the C programming language.  The output is sent to unit zero.  This function returns the number of characters printed.  Example:\
+\b0 	xmkstemp(filename, mode)     Make a temporary file.  This function will call mkstemp() from the C library.  When the xmkstemp function is called the filename is a template that usually has six 'X's in the template.  The xmkstemp call will modify the template to create a unique filename.  The filename is returned in the first argument.  Files created by xmkstemp are not automatically deleted on close.  You will probably want to remove these file by calling xunlink.  Example:\
+\
+			
+\b declare filename character;\
+			declare unit fixed;\
+\
+			filename = '/tmp/zXXXXXX';\
+			unit = xmkstemp(filename, 'w');\
+			if unit < 0 then do;\
+				output(1) = 'Error ' || xerrno || ' creating temporary file: ' || filename;\
+				call exit(4);\
+			end;\
+			output(unit) = 'Stuff written to the temporary file';\
+			/* Delete the file when you are done */\
+			call xfclose(unit);\
+			call xunlink(filename);
+\b0 \
+\
+			The mode argument is the same as the mode argument in the xfopen call.  However only 'w' and 'wb' are useful.\
+\
+	xprintf(format, args, \'85)	A print function that works similar to the printf function in the C programming language.  The output is sent to unit zero.  This function returns the number of characters printed.  Example:\
 \
 			
 \b declare age fixed initial(4);\
@@ -1250,6 +1270,29 @@ Appendix B --- Built-in Functions --- \
 			call xprintf("(c) I am %d years old today.\\n", age);\
 
 \b0 \
+	xrewind(unit)    Rewind an I/O stream.  This function will position the file back to the beginning.  Example:\
+\
+			
+\b declare filename character initial('foo.txt');\
+			declare text character;\
+			declare (unit, code) fixed;\
+\
+			unit = xfopen(filename, 'w+');\
+			if unit < 0 then do;\
+				output(1) = 'File open error: ' || filename;\
+				call exit(1);\
+			end;\
+			output(unit) = 'This text is at position zero.';\
+			/* Write more text here */\
+			code = xrewind(unit);\
+			if code < 0 then do;\
+				output(1) = 'Rewind failed.';\
+				call exit(2);\
+			end;\
+			/* The next read will get the first record */\
+			text = input(unit);
+\b0 \
+\
 	xsprintf(buffer, format, args, \'85)	A character conversion function that works similar to the sprintf function in the C programming language.  The buffer may be a dynamic string or a fixed length string.  The buffer may not be an expression.  The function returns the number of characters put into the buffer.  Example:\
 \
 			
@@ -1260,7 +1303,20 @@ Appendix B --- Built-in Functions --- \
 			call xsprintf(string, 'Help me %s.  You''re my only hope.',  'Obi Wan');\
 			call xsprintf(text, 'string="%s", age=%3.2d', string, age);\
 \
-			/* The buffer is cleared at the beginning of the function call.  */
+			/* The buffer is cleared at the beginning of the function call.  */\
+
+\b0 \
+	xunlink(filename)    Delete a file.  This function calls the unlink() function from the C library.  xerrno is set if there is an error.  Example:\
+\
+			
+\b declare filename character;\
+			declare error_code fixed;\
+\
+			filename = 'myfile.tmp';\
+			error_code = xunlink(filename);\
+			if error_code < 0 then do;\
+				output = 'Error ' || xerrno || ' deleting: ' || filename;\
+			end;
 \b0 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li721\fi-722\ri-2152\pardirnatural\partightenfactor0
 \cf2 \
