@@ -87,6 +87,9 @@ int xfclose(int unit);
 __xpl_string *__xpl_output(int num, __xpl_string *str);
 __xpl_string *__xpl_input(__xpl_string *outstr, int num);
 int xprintf(int, void *ref, __xpl_string *xfmt, ...);
+int xunlink(__xpl_string *file);
+int xrewind(int unit);
+int xmkstemp(__xpl_string *file, __xpl_string *mode);
 
 /* Runtime statistics.  Used for debugging */
 void __xpl_info(void);

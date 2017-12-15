@@ -2,7 +2,8 @@
 #	XPL compiler makefile for GNU/Linux make.
 #
 CFLAGS= -Wall
-LIBFILES=xplrt.o unique.o expand.o xio.o hex.o chrfixed.o xprintf.o
+LIBFILES=xplrt.o unique.o expand.o xio.o hex.o chrfixed.o xprintf.o\
+	xunlink.o xrewind.o xmkstemp.o
 
 %.c:	%.xpl
 	xpl $< -o $@
@@ -24,7 +25,7 @@ samp:	libxpl.a xpl xpl.h samp.xpl
 	$(CC) samp.c libxpl.a -o samp
 
 clean:
-	rm -f *.o *.xh xpl libxpl.a samp.c samp.xh samp
+	rm -f *.o *.xh xpl libxpl.a samp.c samp tags
 
 tags:	xcom.c $(LIBFILES:.o=.c)
 	ctags xcom.c $(LIBFILES:.o=.c)

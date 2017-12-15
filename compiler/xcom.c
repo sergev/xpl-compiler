@@ -741,6 +741,13 @@ struct builtin_s builtin[] = {
 	{CHRTYPE, 0, 0, STR(" ")},	/* Parameter 2.  Must follow xfopen()  */
 	{PROC_BIT32, 0, 0, STR("xfclose")},
 	{FIXEDTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xfclose()  */
+	{PROC_BIT32, 0, 0, STR("xrewind")},
+	{FIXEDTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xrewind()  */
+	{PROC_BIT32, 0, 0, STR("xmkstemp")},
+	{CHRTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xmkstemp()  */
+	{CHRTYPE, 0, 0, STR(" ")},	/* Parameter 2.  Must follow xmkstemp()  */
+	{PROC_BIT32, 0, 0, STR("xunlink")},
+	{CHRTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xunlink()  */
 	{CHAR_PROC_TYPE, 0, 0, STR("unique")},
 	{CHRTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow unique()  */
 	{CHAR_PROC_TYPE, 0, 0, STR("expand_tabs")},
