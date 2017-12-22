@@ -1317,7 +1317,7 @@ bchar(void)
 					scanner_value = (scanner_value << 4) + hex_digit[ch];
 				} else {
 					next_ch = ch;
-					return ch != '\"';
+					return TRUE;
 				}
 			}
 		} else {
@@ -1585,6 +1585,10 @@ scan(void)
 						cchar();
 						s2 = BYTE(&text, cp);
 						control[s2] >>= 1;
+					} else
+					if (s2 == 'I') {
+						/* Cannot be turned off */
+						ignore_case_macro();
 					} else {
 						control[s2] ^= 1;
 					}
@@ -1594,10 +1598,6 @@ scan(void)
 						} else {
 							margin_chop = 0;
 						}
-					} else
-					if (s2 == 'I' && (control['I'] & 1) == 1) {
-						/* Ignore case */
-						ignore_case_macro();
 					}
 				}
 				s1 = s2;
@@ -4023,7 +4023,7 @@ dump_token(void)
 int
 initialize(void)
 {
-	static STRING splash = STR("XPL to C language translator -- version 0.4");
+	static STRING splash = STR("XPL to C language translator -- version 0.5");
 	static STRING line_name = STR("__LINE__");
 	static STRING address = STR("address");
 	static STRING bit32 = STR("bit(32)");
@@ -6314,7 +6314,7 @@ usage(void)
 	printf("      file - XPL input source file name\n\n");
 	printf("   Uppercase letters set initial values for compiler toggles\n");
 	printf("      D - Dump stats at the end of compilation\n");
-	printf("      G - 32 bit machine (2 Gig address space)\n");
+	printf("      G - Cross compile from a 64-bit machine to a 32-bit machine\n");
 	printf("      H - Hide identifiers from the C compiler\n");
 	printf("      I - Ignore case for keywords and builtin functions\n");
 	printf("      K - Emit Linemarkers for the C compiler\n");
@@ -6381,6 +6381,7 @@ main(int argv, char **argc)
 		usage();
 		return 1;
 	}
+	control['|'] = 0;	/* Margin chop may not be set on the command line */
 	if (output_filename[0] == '\0') {
 		if (!input_filename) {
 			fprintf(stderr, "Output filename required\n");
