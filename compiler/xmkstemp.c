@@ -55,7 +55,7 @@ xmkstemp(__xpl_string *template, __xpl_string *mode)
 	/* Find an empty slot for the I/O stream */
 	for (x = 0; ; x++) {
 		if (x >= __XPL_FILE_MAX) {
-			xerrno = ENOMEM;
+			xerrno = ENFILE;
 			return -1;
 		}
 		if (!__xpl_FILE_in[x] && !__xpl_FILE_out[x]) {

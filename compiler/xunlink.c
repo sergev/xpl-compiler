@@ -28,8 +28,8 @@ xunlink(__xpl_string *filename)
 	int result;
 
 	if (filename->_Length == 0) {
-		xerrno = -2;
-		return -2;
+		xerrno = ENOENT;
+		return -1;
 	}
 	xerrno = 0;
 	__xpl_cat(&path, filename, &null_terminator);

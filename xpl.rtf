@@ -1,4 +1,4 @@
-{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf100
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
 {\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fmodern\fcharset0 Courier-Bold;}
 {\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red255\green255\blue255;\red26\green26\blue26;
 \red246\green247\blue249;}
@@ -21,7 +21,7 @@ Daniel Weaver\
 \
 1.1	Source Translation\
 \
-	       This implementation of the XPL compiler is an XPL to C source language translator.  The compiler translates XPL source to C source which can be compiled on any computer that supports a C compiler.  Unlike most XPL compilers this compiler is not a self compiling compiler it is written in C and there is no plan to rewrite it in XPL.  The runtime is also written in C.  Using C as a target language does cause some limitations on the compiler.  These are listed in the section on 
+	       This implementation of the XPL compiler is an XPL to C source language translator.  The compiler translates XPL source to C source which can be compiled on any computer that supports a C compiler.  Unlike most XPL compilers, this compiler is not a self compiling compiler.  It is written in C and there is no plan to rewrite it in XPL.  The runtime is also written in C.  This allows anyone with a C compiler to compile code written in XPL.  Using C as a target language does cause some limitations on the compiler.  These are listed in the section on 
 \i Limitations
 \i0 .\
 \
@@ -80,7 +80,7 @@ Daniel Weaver\
 	            | (2) <quartal integer>\
 	            | (3) <octal integer>\
 	            | (4) <hex integer>\
-	            | ( <number> ) <extended hexadecimal>\
+	            | ( <bit width> ) <extended hexadecimal>\
 	<binary integer> ::= <binary digit>\
 	                 | <binary integer> <binary digit>\
 	<binary digit> ::= 0|1\
@@ -95,7 +95,7 @@ Daniel Weaver\
 	<hex digit> ::= 0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F|a|b|c|d|e|f
 \f0\b0 \
 \
-	      Binary, octal, and hexadecimal are supported and require the number to be enclosed in double quotes.  The number of bits in the radix can be explicitly changed by enclosing a small constant in parentheses.  The default radix is 16 so the default number of bits needed for each digit is 4.   The radix may be changed within a number by supplying a new base in parentheses.  Blanks may be used within bit strings.  Macros are not recognized within bit strings.  Examples:\
+	      Binary, octal, and hexadecimal are supported and require the number to be enclosed in double quotes.  The number of bits in the radix can be explicitly changed by enclosing a small constant in parentheses.  The default radix is 16 so the default number of bits needed for each digit is 4.   The radix may be changed within a number by supplying a new width in parentheses.  Blanks may be used within bit strings.  Macros are not recognized within bit strings.  Examples:\
 \
  		"(1) 1010 1100" 	 binary.\
 		"(2) 2230"    	  quaternary.\
@@ -104,18 +104,18 @@ Daniel Weaver\
 		"AC"          	  also hexadecimal.\
 		"(1) 1 (2) 3 (3) 7 (4) F"  	 mixed (equal to "3ff").\
 \
-	      All character string and bit string constants are null terminated.  Dynamically created strings do not have a null terminator.\
+	      All character string and bit string constants are null terminated because of the underlying C compiler.  Dynamically created strings do not have a null terminator.\
 \
 2.5	Extended hexadecimal bit strings\
 
 \f1\b \
- 	<bit group> ::= ( <number> ) <extended hexadecimal>\
+ 	<bit group> ::= ( <bit width> ) <extended hexadecimal>\
 	<extended hexadecimal> ::= <hex digit>\
 	                       | <extended hexadecimal> <hex digit>\
 	<hex digit> ::= 0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F|a|b|c|d|e|f
 \f0\b0 \
 \
-	      As an extension to the XPL language, this compiler allows the base to be any number between 1 and 64 (32 for a 32 bit machine).  This allows you to use values that are wider than 4 bits and aligned on arbitrary boundaries.  When using this feature a blank will terminate the bit field.\
+	      As an extension to the XPL language, this compiler allows the bit width to be any number between 1 and 64 (32 for a 32 bit machine).  This allows you to use values that are wider than 4 bits and aligned on arbitrary boundaries.  When using this feature a blank will terminate the bit field.\
 	     Let\'92s say you have a 16 bit opcode where the most significant bit is a one bit field and the remainder of the opcode is three five bit fields.  For this example the left most bit is zero and all three five bit fields are set to one.  Using simple <bit string> and hexadecimal the value would be "0421".  It is possible to render the string with a mix of binary and hexadecimal "(1) 0 0 (4)1 (1)0 (4)1 (1)0 (4)1".  This is not very easy to read.  However if you use <extended hexadecimal>  the bit string becomes "(1)0 (5)01 01 01".  Which is much easier to read.\
 	    Here is a real world example using the SPARC instruction set:\
 		"(2)0 (5)1f (6)00 (5)1f (1)0 (13)fff"\
@@ -166,7 +166,7 @@ Daniel Weaver\
 \
 2.8	Comments\
 \
-	      The XPL compiler has two types of comments.  It supports the // comment as well as the /* */ style comment of PL/I.  Comments that start with a // extend to the end of the line and may be placed anywhere on the line.  Comments that start with a slash asterisk(/*) extend to the next asterisk slash (*/).  Comments may span record boundaries and contain any character.  Comments may appear anywhere a blank may appear except within bit strings.  Generally comments do not effect the execution of the program and should be used freely to document the text.  Example:\
+	      The XPL compiler has two types of comments.  It supports the // comment as well as the /* */ style comment of PL/I.  Comments that start with a // extend to the end of the line and may be placed anywhere on the line.  Comments that start with a slash asterisk(/*) extend to the next asterisk slash (*/).  Comments may span record boundaries and contain any character.  Comments may appear anywhere a blank may appear except within bit strings.  Generally comments do not affect the execution of the program and should be used freely to document the text.  Example:\
 		/* THIS IS A COMMENT */\
 	      Comments may contain control toggles that may have some effect on your program.  Control toggles are characters proceeded by a dollar sign ($).  The toggles are turned on or off by a dollar sign followed by the character(e.g. $S).  Control toggles may also be set on the command line when the compiler is invoked.  Most control toggles are upper case letters.\
 	      The control toggles may be pushed or popped using $>
@@ -179,7 +179,6 @@ Daniel Weaver\
 \b declare new_variable fixed;
 \b0 \
 		/* Pop the value of H. $<H  The toggle returns to its previous value. */\
-	     The original XPL compiler used $| to delineate the rightmost end of the input stream.  This feature is not supported.\
 \
 3.	Declarations and Data Types\
 \
@@ -196,7 +195,7 @@ Daniel Weaver\
 \f0\b0 \
 \
 	      The XPL compiler supports 8 data types that may be used for data storage or arithmetic expressions.  Identifiers declared as BIT(1) are assumed to be boolean values that hold only the value of 0 or 1.  They are allocated as 
-\i unsigned char
+\i char
 \i0  and may be used in arithmetic expressions.  Identifiers declared as BIT(2) thru BIT(8) are also allocated as 
 \i unsigned char
 \i0  and may hold the values of 0 thru 255.  Identifiers declared as BIT(9) thru BIT(16) will be allocated as 
@@ -213,7 +212,7 @@ Daniel Weaver\
 		
 \b stuff = 'A longer string.';
 \b0 			/* The length(stuff) is now 16 */\
-	      The fixed length CHARACTER format e.g. CHARACTER(5) is used much like dynamic character strings except that it allocates a dedicated storage area to hold he string.  All fixed length strings are null terminated.  When the string is used as a source the compiler creates a descriptor that holds the address and length of the string.  The descriptor format is exactly like the descriptors used for variable length strings.  The length of the string is created by finding the null terminator.  When a fixed length string is used in a store operation the data in the string is copied to the storage area of the fixed length string and a null terminator is attached to the end of the string.  If the string is longer than the space allotted to the fixed length string the string will be truncated and the null terminator will be placed in the last byte of the string.  Fixed length strings are designed to help interface to programs written in C.\
+	      The fixed length CHARACTER format e.g. CHARACTER(5) is used much like dynamic character strings except that it allocates a dedicated storage area to hold the string.  All fixed length strings are null terminated.  When the string is used as a source the compiler creates a descriptor that holds the address and length of the string.  The descriptor format is exactly like the descriptors used for variable length strings.  The length of the string is created by finding the null terminator.  When a fixed length string is used in a store operation the data in the string is copied to the storage area of the fixed length string and a null terminator is attached to the end of the string.  If the string is longer than the space allotted to the fixed length string the string will be truncated and the null terminator will be placed in the last byte of the string.  Fixed length strings are designed to help interface to programs written in C.\
 	      The LABEL declaration type is used for GOTO's and forward procedure calls.\
 \
 3.2	Address type\
@@ -442,7 +441,7 @@ Daniel Weaver\
 \
 4.7	What happened to the main procedure?\
 \
-	     XPL does not used a main procedure like in PL/I or C.  Statements that are not enclosed within a procedure are assumed to be the start of execution.  These statements appear as though they were enclosed in a PL/I procedure with 
+	     XPL does not use a main procedure like in PL/I or C.  Statements that are not enclosed within a procedure are assumed to be the start of execution.  These statements appear as though they were enclosed in a PL/I procedure with 
 \b procedure options(main)
 \b0 .  
 \b main
@@ -609,7 +608,7 @@ Daniel Weaver\
 \f0\b0 \
 \
 	        It is a little known fact that the DO loop was invented by a file clerk who worked for a small computer manufacturer at Hursley Laboratory in the UK.  The programmers in this computer company spent much of their time in committee designing large compiler projects.  The statements made in each meeting had to be numbered, filed and sent back to committee for review.  The file clerk, whose name is David Owens, was given the task of filing the results of the meetings.  David initialed each report before sending it back to the committee.  The committee came to refer to the iterative processing of statements as the David Owens loop, or DO loop for short.\
-	      The DO loop provides iterative execution of a group of statements a certain number of times.  The DO loop provides a start value, and end value and an optional increment.  When the DO loop begins it sets the iteration variable to the start value.  If the iteration variable exceeds the end value then the body of the DO loop is never executed.  Otherwise the statements within the DO loop are executed.  After executing the statements in the loop, the variable is incremented by the expression in the BY clause of the DO statement.  Then the whole process repeats.  If the BY clause is omitted an increment of one is used.  Negative constants are permitted in the DO loop BY clause but all non-constant expressions are assumed to be positive.  The DO loop variable may not be indexed.  The escape value and loop increment can not be changed from within the DO loop, but the DO loop variable may be modified by the statements within the loop.  Here are some examples:\
+	      The DO loop provides iterative execution of a group of statements a certain number of times.  The DO loop provides a start value, an end value and an optional increment.  When the DO loop begins it sets the iteration variable to the start value.  If the iteration variable exceeds the end value then the body of the DO loop is never executed.  Otherwise the statements within the DO loop are executed.  After executing the statements in the loop, the variable is incremented by the expression in the BY clause of the DO statement.  Then the whole process repeats.  If the BY clause is omitted an increment of one is used.  Negative constants are permitted in the DO loop BY clause but all non-constant expressions are assumed to be positive.  The DO loop variable may not be indexed.  The escape value and loop increment can not be changed from within the DO loop, but the DO loop variable may be modified by the statements within the loop.  Here are some examples:\
 \
 		
 \b declare c character, k fixed;\
@@ -676,7 +675,7 @@ Daniel Weaver\
 \
 6.1	Operator Precedence\
 \
-	      Operator precedence is formally defined by the BNF description of the language.  For those of you who couldn't be bothered, here is the same information in table form. \
+	      Operator precedence is formally defined by the BNF description of the language.  For those of you who can\'92t be bothered, here is the same information in table form. \
 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li2877\fi-2879\ri-2152\pardirnatural\partightenfactor0
 \cf2 		* 	1  Multiply.\
@@ -754,7 +753,7 @@ Daniel Weaver\
 \b0  is set to the top if the free string area.  The second type of collection is where it only collects strings above the 
 \b lower_bound
 \b0 .  This is call a minor collection.  The hope is that the minor collections will free up enough space so that a major collection is not needed.\
-	      When searching for strings to collect the COMPACTIFY procedure will ignore any string that does not fall inside the free string area.  Fixed length strings are never garbage collected.\
+	      When searching for strings to collect the COMPACTIFY procedure will ignore any descriptor that points to a string outside the free string area.  Fixed length strings are never garbage collected.\
 \
 8.	Limitations and Restrictions\
 \
@@ -764,7 +763,7 @@ Daniel Weaver\
 \
 	1) When calling a function or subroutine you should supply all arguments defined by the procedure.  XPL69 allowed arguments to be omitted and they would retain values from the previous call.  Since the C compiler requires the number of arguments to match the XPL compiler adds arguments to fill out the procedure call.  These arguments are set to zero.  Forward reference procedures defined with the LABEL declaration will not have extra arguments appended because the compiler does know the number of arguments in the procedure.\
 \
-	2) Declare statements may only be used at the beginning of a block.  This exactly matches the restrictions in the C language.  XPL69 allowed declarations to be anywhere.\
+	2) Declare statements may only be used at the beginning of a block.  This exactly matches the restrictions in the C language as defined by K&R.  XPL69 allowed declarations to be anywhere.\
 \
 	3) Functions can not assume a default type.  The type of a function must be explicitly declared.\
 \
@@ -807,7 +806,7 @@ Appendix A --- Compiler Options --- \
 	\
 	   Uppercase letters set initial values for compiler toggles\
 	      D - Dump stats at the end of compilation\
-	      G - 32 bit machine (2 Gig address space)\
+	      G - Cross compile from a 64-bit machine to a 32-bit machine\
 	      H - Hide identifiers from the C compiler\
 	      I - Ignore case for keywords and builtin functions\
 	      K - Emit Linemarkers for the C compiler\
@@ -838,7 +837,7 @@ Appendix A --- Compiler Options --- \
 				/* $H  Hide this variable from the C compiler */\
 				declare strlen fixed;\
 				/* $H  Turn off the control toggle */\
-	-I		Ignore case.  This allows the use of uppercase letters for keywords and builtin functions.\
+	-I		Ignore case.  This allows the use of uppercase letters for keywords and builtin functions.  Once this option is turned on it can not be turned off.\
 	-K		Emit Linemarkers for the C compiler.  This tells the compiler to generate #line directives when emitting code that is passed to the C compiler.  This should help you find errors that show up when the C source is compiled but were not detected by the XPL compiler.\
 	-L		List source.  Back in the day, programmers would use line printers to get listing of their programs.  The listings would be annotated with line numbers and procedure names and the like.  You can capture this listing by redirecting stdout to a file.\
 	-m		The code will be generated without a main() procedure.  This will allow some other program written in a different language to call the XPL program.  When using this option all statements must be enclosed within a PROCEDURE. \
@@ -849,12 +848,22 @@ Appendix A --- Compiler Options --- \
 	-W		Inhibit warnings for undeclared variables and procedures.\
 	-X		Show macro expansion.  When a macro defined by the LITERALLY statement is expanded the compiler will show the expansion and print a line to stdout.\
 	-Y		Give warning for high order truncation.  When this option is set a warning is printed when the program tries to store a large value into a smaller memory location.\
+\
+	Other dollar options that may be used in PL/I style comments.\
+\
+	$|		Margin chop.  This option may not be used on the command line because the position of the | is used to tell the compiler where to stop scanning text.  All text to the right of the vertical bar | is ignored.  This is used to sequence your card deck.\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li721\fi-722\ri-2152\pardirnatural\partightenfactor0
 \cf2 \
 Appendix B --- Built-in Functions --- \
 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li2150\fi-2152\ri-2152\pardirnatural\partightenfactor0
-\cf2 	__LINE__	A macro that expands to the current line number of the input text.\
+\cf2 	XPL_EOF	The variable 
+\b xerrno
+\b0  will be set to this value when the builtin function 
+\b input
+\b0 () reads an EOF from a file that was opened in binary mode.\
+\
+	__LINE__	A macro that expands to the current line number of the input text.\
 \
 	abort		A subroutine that will abort execution of the current program.\
 \
@@ -902,6 +911,12 @@ Appendix B --- Built-in Functions --- \
 \b0  function modifies the string but does not move it.  Any SUBSTRings pointing to the same area will also be modified.  The 
 \b byte()
 \b0  function can be used with both dynamic CHARACTER strings as well as fixed length strings.\
+			When position is out of range the 
+\b byte
+\b0  function will return zero.\
+				
+\b x = byte(string, length(string));  /* x will always be zero */
+\b0 \
 \
 	byte(string)	Short form of the above function which refers to the first element of the string.  This is equivalent to byte(string, 0).  This form of the byte() function is commonly used to convert string constants to integers.  For example:\
 				
@@ -925,23 +940,29 @@ Appendix B --- Built-in Functions --- \
 \b localtime()
 \b0 .\
 \
-	date_of_generation	A bit(32) variable the holds the value of the date function when the code was compiled.\
+	date_of_generation	A bit(32) variable the holds the value of the 
+\b date
+\b0  function when the code was compiled.\
 \
 	descriptor()	An array which holds all the descriptors used by the program.\
 \
-	exit(v)		A function that causes the program to exit with a value v.  XPL69 implements exit() as an abnormal exit that causes a core dump.  I have chosen to implement the C style of exit that causes a normal termination of the program.\
+	exit(v)		A function that causes the program to exit with a value v.  XPL69 implements 
+\b exit
+\b0 () as an abnormal exit that causes a core dump.  I have chosen to implement the C style of 
+\b exit
+\b0 () that causes a normal termination of the program.\
 \
 	expand_tabs(string, tabstop)  A CHARACTER function that expands the tabs in the 
 \b string
 \b0  using 
 \b tabstop
-\b0  as the tab position.  This function returns the new string.\
+\b0  as the tab position.  The beginning of the string is used as the left margin.  This function returns the new string.\
 \
 	file(unit, position)	A builtin function that provides random access to the I/O device associated with unit.  The length of the operation is taken from the size of the array being read or written.  
 \b position
 \b0  is in multiples of the buffer size.  
 \b position
-\b0  start at zero.  
+\b0  starts at zero.  
 \b file
 \b0  is used like an assignment statement and the other side of the assignment statement is an array that is used to hold the data.  Example:\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li3603\fi-3606\ri-2152\pardirnatural\partightenfactor0
@@ -959,7 +980,7 @@ Appendix B --- Built-in Functions --- \
 \b file_record_size
 \b0  variable.\
 \
-	file_record_size	A BIT(64) (or BIT(32)) variable the holds the maximum record size for the 
+	file_record_size	A BIT(64) (or BIT(32)) variable that holds the maximum record size for the 
 \b file
 \b0  builtin function.  This may be used to read or write less than the buffer size used in the 
 \b file
@@ -967,7 +988,7 @@ Appendix B --- Built-in Functions --- \
 \
 	freebase	A BIT(64) (or BIT(32)) variable that points to the byte address of the start of the free string area.  Don\'92t play with it.\
 \
-	freelimit	A BIT(64) (or BIT(32)) variable that points to the byte address of the and of the free string area.  Don\'92t play with this on either.\
+	freelimit	A BIT(64) (or BIT(32)) variable that points to the byte address of the end of the free string area.  Don\'92t play with this one either.\
 \
 	freepoint	A BIT(64) (or BIT(32)) variable that points to the byte address of the next available byte of the free string area.  When 
 \b freepoint
@@ -1032,7 +1053,7 @@ Appendix B --- Built-in Functions --- \
 \
 				
 \b call inline('#include <sys/socket.h>');\
-				call inline('#include <arpa/inet.h>');\
+				call inline('#include <netinet/in.h>');\
 				call inline('struct sockaddr_in server;');\
 \
 				declare PF_INET literally 'inline(''PF_INET'')';\
@@ -1057,15 +1078,21 @@ Appendix B --- Built-in Functions --- \
 				text = input(2);
 \b0 	/* Read one string from unit 2 */\
 \
-			The input function reads characters until it finds a newline (hex code "0A").  Carriage returns are discarded.  End-of-file will be indicated by returning a null string.\
+			The 
+\b input
+\b0  function reads characters up to a new-line indicator (LineFeed on UNIX, CarriageReturn/LineFeed on MS-DOS).  The new-line indicator is discarded and the remaining text is returned.  End-of-file is indicated by returning a zero-length string.  Lines that would otherwise be of length zero (after trimming) will be padded with one blank to distinguish them from End-of-file.\
 \
-			If you open a file as binary it will return all characters in the input stream.  Reading a binary file will typically return a string of 1024 bytes.  End-of-file will be indicated by reading 
+			If you open a file as binary it will return all characters in the input stream.  Reading a binary file will typically return a string of 1024 bytes.  
 \b xerrno
-\b0 .  See 
+\b0  will be set to 
+\b XPL_EOF
+\b0  to indicate an End-of-file.  See 
 \b xfopen()
 \b0  function.\
 \
-	input		Same as input(0)\
+	input		Same as 
+\b input(0)
+\b0 \
 \
 	length(string)	A function that will return the length of a character string.  See also 
 \b saddr()
@@ -1097,7 +1124,7 @@ Appendix B --- Built-in Functions --- \
 \b0 .\
 \
 	saddr(string)	This function returns the address portion of the string descriptor.  If the string is in the dynamic string area the 
-\b compactly()
+\b compactly
 \b0  procedure might move the string causing the results of the 
 \b saddr()
 \b0  function to be invalid.  As a result the address has a very limited lifespan.  The address returned by a null string may contain garbage.  You should check for length equals zero before using this function.\
@@ -1172,20 +1199,28 @@ Appendix B --- Built-in Functions --- \
 \
 	untrace	This subroutine does nothing.  It is included here for compatibility.\
 \
-	xerrno		A BIT(32) variable the will be set to the value of the Unix/Linux 
-\b errno
-\b0  variable if there is an I/O error in the XPL runtime.  This variable is set to zero if the most recent I/O operation in the runtime was successful.  The XPL variable 
+	xerrno		A BIT(32) variable that is used to indicate errors in the XPL runtime.  The 
 \b xerrno
-\b0  is not a direct mapping of the C language variable 
+\b0  variable will be set to 
+\b EBADF
+\b0  if the unit is out of range and will be set to 
+\b XPL_EOF
+\b0  on EOF.  The 
+\b xerrno
+\b0  variable will be set to the value of the C variable 
 \b errno
-\b0 .  This variable only gets set when an error occurs in the XPL runtime.\
+\b0  if the C runtime library reports an error in the I/O operation.  Unlike the C variable 
+\b errno
+\b0  the value of 
+\b xerrno
+\b0  will be cleared if the I/O operation is successful.\
 \
 	xfclose(unit)	A subroutine that interfaces to the C 
 \b fclose()
 \b0  function.	 The 
 \b unit
 \b0  number should be a number returned by 
-\b xfopen()
+\b xfopen
 \b0 .\
 \
 	xfopen(filename, mode)	A function that interfaces to the C 
@@ -1234,7 +1269,9 @@ Appendix B --- Built-in Functions --- \
 			end;\
 \
 
-\b0 	xfprintf(unit, format, args, \'85)	A print function that works similar to the fprintf function in the C programming language.  This function returns the number of characters printed.  The unit may be opened with the xfopen function call.  Example:\
+\b0 	xfprintf(unit, format, args, \'85)	A print function that works similar to the fprintf function in the C programming language.  This function returns the number of characters printed.  The unit may be opened with the 
+\b xfopen
+\b0  function call.  Example:\
 \
 			
 \b declare age fixed initial(4);\
@@ -1242,14 +1279,16 @@ Appendix B --- Built-in Functions --- \
 			call xfprintf(unit, "(c) I am %d years old today.\\n", age);\
 \
 
-\b0 	xmkstemp(filename, mode)     Make a temporary file.  This function will call mkstemp() from the C library.  When the xmkstemp function is called the filename is a template that usually has six 'X's in the template.  The xmkstemp call will modify the template to create a unique filename.  The filename is returned in the first argument.  Files created by xmkstemp are not automatically deleted on close.  You will probably want to remove these file by calling xunlink.  Example:\
+\b0 	xmkstemp(filename, mode)     Make a temporary file.  This function will call mkstemp() from the C library.  When the xmkstemp function is called the filename is a template that usually has six 'X's in the template.  The xmkstemp call will modify the template to create a unique filename.  The filename is returned in the first argument.  Files created by xmkstemp are not automatically deleted on close.  You will probably want to remove these file by calling 
+\b xunlink
+\b0 .  Example:\
 \
 			
 \b declare filename character;\
 			declare unit fixed;\
 \
 			filename = '/tmp/zXXXXXX';\
-			unit = xmkstemp(filename, 'w');\
+			unit = xmkstemp(filename, \'91r+\'92);\
 			if unit < 0 then do;\
 				output(1) = 'Error ' || xerrno || ' creating temporary file: ' || filename;\
 				call exit(4);\
@@ -1260,9 +1299,13 @@ Appendix B --- Built-in Functions --- \
 			call xunlink(filename);
 \b0 \
 \
-			The mode argument is the same as the mode argument in the xfopen call.  However only 'w' and 'wb' are useful.\
+			The mode argument is the same as the mode argument in the 
+\b xfopen
+\b0  call.  However only \'91r+\'92 and \'91r+b' are useful.\
 \
-	xprintf(format, args, \'85)	A print function that works similar to the printf function in the C programming language.  The output is sent to unit zero.  This function returns the number of characters printed.  Example:\
+	xprintf(format, args, \'85)	A print function that works similar to the 
+\b printf
+\b0  function in the C programming language.  The output is sent to unit zero.  This function returns the number of characters printed.  Example:\
 \
 			
 \b declare age fixed initial(4);\
@@ -1293,7 +1336,9 @@ Appendix B --- Built-in Functions --- \
 			text = input(unit);
 \b0 \
 \
-	xsprintf(buffer, format, args, \'85)	A character conversion function that works similar to the sprintf function in the C programming language.  The buffer may be a dynamic string or a fixed length string.  The buffer may not be an expression.  The function returns the number of characters put into the buffer.  Example:\
+	xsprintf(buffer, format, args, \'85)	A character conversion function that works similar to the 
+\b sprintf()
+\b0  function in the C programming language.  The buffer may be a dynamic string or a fixed length string.  The buffer may not be an expression.  This function returns the number of characters put into the buffer.  Example:\
 \
 			
 \b declare age fixed initial(4);\
@@ -1306,7 +1351,11 @@ Appendix B --- Built-in Functions --- \
 			/* The buffer is cleared at the beginning of the function call.  */\
 
 \b0 \
-	xunlink(filename)    Delete a file.  This function calls the unlink() function from the C library.  xerrno is set if there is an error.  Example:\
+	xunlink(filename)    Delete a file.  This function calls the 
+\b unlink()
+\b0  function from the C library.  
+\b xerrno
+\b0  is set if there is an error.  Example:\
 \
 			
 \b declare filename character;\
@@ -1320,7 +1369,77 @@ Appendix B --- Built-in Functions --- \
 \b0 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li721\fi-722\ri-2152\pardirnatural\partightenfactor0
 \cf2 \
-Appendix C --- Format strings ---\
+\
+\
+Appendix C \'97 Name space pollution\
+\
+	This XPL compiler suffers serious name space pollution because it must deal with both XPL identifiers and the special purpose identifiers defined by the underlying C compiler.  The XPL compiler mangles identifiers and PROCEDURE names to minimize the impact of name conflicts.  In the event that a local variable does cause a name conflict the -H option (or the $H flag) may be set to tell the compiler to mangle all identifier names.  However the -H option has no useful effect on PROCEDURES that are declared EXTERNAL.  Identifiers used in the XPL runtime may not be used as EXTERNAL PROCEDURES.  These include:  
+\b x2c_string
+\b0 , 
+\b expand_tabs
+\b0 , 
+\b unique
+\b0  and 
+\b hex
+\b0 .  All reserved words in the C language are not permitted as EXTERNAL PROCEDURE names.  Identifiers promoted to global scope are not permitted as EXTERNAL PROCEDURES.  Identifiers that start with __XPL_ and __xpl_ are reserved for the compiler.\
+\
+	The -D option will display the table of \'93Identifiers promoted to Global Scope\'94 and the table of \'93Identifier mapper definitions\'94 at the end of compilation.  Here is the display from the XPL analyzer.  The variables promoted to global scope depend on the variables used in a nested PROCEDURE.\
+\
+	
+\f1\b Identifiers promoted to Global Scope:\
+\
+	scan\
+	sort_v\
+	get_card\
+	add_item\
+	dis_apply\
+	print_date\
+	print_form\
+	never_been_here\
+	apply_production\
+\
+\
+	Identifier mapper definitions:\
+\
+	for                  literally: __xpl__for\
+	int                  literally: __xpl__int\
+	auto                 literally: __xpl__auto\
+	char                 literally: __xpl__char\
+	enum                 literally: __xpl__enum\
+	long                 literally: __xpl__long\
+	void                 literally: __xpl__void\
+	main                 literally: __xpl__main\
+	exit                 literally: __xpl__exit\
+	time                 literally: __xpl__time\
+	date                 literally: __xpl__date\
+	break                literally: __xpl__break\
+	const                literally: __xpl__const\
+	float                literally: __xpl__float\
+	short                literally: __xpl__short\
+	union                literally: __xpl__union\
+	abort                literally: __xpl__abort\
+	index                literally: __xpl__index\
+	errno                literally: __xpl__errno\
+	double               literally: __xpl__double\
+	extern               literally: __xpl__extern\
+	signed               literally: __xpl__signed\
+	sizeof               literally: __xpl__sizeof\
+	static               literally: __xpl__static\
+	struct               literally: __xpl__struct\
+	switch               literally: __xpl__switch\
+	typeof               literally: __xpl__typeof\
+	size_t               literally: __xpl__size_t\
+	default              literally: __xpl__default\
+	continue             literally: __xpl__continue\
+	register             literally: __xpl__register\
+	unsigned             literally: __xpl__unsigned\
+	volatile             literally: __xpl__volatile
+\f0\b0 \
+\
+	TRANSPARENT PROCEDURES are not effected by this problem because the desired result is to use the C library function.\
+\
+\
+Appendix D --- Format strings ---\
 \
 	The functions xfprintf, xprintf, and xsprintf all use the same format strings.  The general form of a format string is:\
 \
@@ -1361,7 +1480,7 @@ Appendix C --- Format strings ---\
 			n	Returns the number of characters written so far.  The argument must be an address that points to a BIT(32) integer.\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li721\fi-722\ri-2152\pardirnatural\partightenfactor0
 \cf2 \
-Appendix D --- BNF ---\
+Appendix E --- BNF ---\
 
 \f1\b \
 	<program> ::= <statement list>\

@@ -193,7 +193,7 @@ xprintf(int func, void *ref, __xpl_string *xfmt, ...)
 	case 1:
 		i = (int) ((XPL_ADDRESS) ref);
 		if (i < 0 || i > __XPL_FILE_MAX) {
-			xerrno = -2;
+			xerrno = EBADF;
 			return 0;
 		}
 		ref = (void *) __xpl_FILE_out[i];
@@ -205,13 +205,13 @@ xprintf(int func, void *ref, __xpl_string *xfmt, ...)
 		break;
 	case 3:
 		if (((__xpl_string *) ref)->_Length < 2) {
-			xerrno = -3;
+			xerrno = EFAULT;
 			return 0;
 		}
 		print = build_charfix;
 		break;
 	default:
-		xerrno = -1;
+		xerrno = EINVAL;
 		return 0;
 	}
 	xp_char_count = 0;

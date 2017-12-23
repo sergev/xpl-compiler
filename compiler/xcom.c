@@ -656,7 +656,7 @@ static STRING typename[LAST_TYPE] = {
 	STR("literally"),
 	STR("void *   "),
 	STR("<undefined arg>"),
-	STR("24"),
+	STR("constant "),
 	STR("25"),
 };
 
@@ -718,7 +718,8 @@ enum specials {BIN_SCALAR, BIN_ARRAY, BIN_STRING, BIN_CHAR_POINTER, BIN_CALL,
 	BIN_MOPAR, BIN_ACCUMULATOR, BIN_LENGTH, BIN_SUBSTR, BIN_BYTE, BIN_SHL, BIN_SHR,
 	BIN_INPUT, BIN_OUTPUT, BIN_FILE, BIN_INLINE, BIN_ADDR, BIN_SADDR,
 	BIN_COREBYTE, BIN_COREHALFWORD, BIN_COREWORD, BIN_CORELONGWORD,
-	BIN_BUILD_DESCRIPTOR, BIN_XFPRINTF, BIN_XPRINTF, BIN_XSPRINTF};
+	BIN_BUILD_DESCRIPTOR, BIN_XFPRINTF, BIN_XPRINTF, BIN_XSPRINTF,
+	BIN_CONSTANT};
 
 struct builtin_s builtin[] = {
 	{FIXEDTYPE, 0, 0, STR("time_of_generation")},
@@ -755,6 +756,7 @@ struct builtin_s builtin[] = {
 	{FIXEDTYPE, 0, 0, STR(" ")},	/* Parameter 2.  Must follow expand_tabs()  */
 	{CHAR_PROC_TYPE, 0, 0, STR("hex")},
 	{FIXEDTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow hex()  */
+	{CONSTANT, __XPL_EOF, 0, STR("XPL_EOF")},
 	{SPECIAL, BIN_LENGTH, 0, STR("length")},
 	{SPECIAL, BIN_SUBSTR, 0, STR("substr")},
 	{SPECIAL, BIN_BYTE, 0, STR("byte")},
@@ -2666,6 +2668,9 @@ id_lookup(int p, int default_type)
 	if (syt_type[i] == DESCRIPT) {
 		ps_bin[p] = BIN_CHAR_POINTER;
 	} else
+	if (syt_type[i] == CONSTANT) {
+		ps_bin[p] = BIN_CONSTANT;
+	} else
 	if (syt_type[i] < CHRTYPE || syt_type[i] == CHARFIXED) {
 		if (syt_dim[i] == 0) {
 			ps_bin[p] = BIN_SCALAR;
@@ -4268,6 +4273,9 @@ outline(STRING *outstr, STRING *name, int sym)
 	if (syt_type[sym] == CHRTYPE || syt_type[sym] == SPECIAL) {
 		CAT(outstr, outstr, &at);
 		CAT_INT(outstr, outstr, syt_disp[sym]);
+	} else
+	if (syt_type[sym] == CONSTANT) {
+		CAT_INT(outstr, outstr, syt_disp[sym]);
 	}
 	CAT_INT(outstr, pad(outstr, 48), declared_on_line[sym]);
 	CAT_INT(outstr, pad(outstr, 55), syt_count[sym]);
@@ -4295,6 +4303,8 @@ symboldump(void)
 	int i, j, k, l, m;
 	short sytsort[SYTSIZE + 1];
 	static STRING symbol_table_dump = STR("Symbol  table  dump");
+	static STRING symbol_header =
+		STR("Identifier               Type     Displacement  Line   Usage");
 	static STRING param = STR("  parameter  ");
 	STRING *symboldump_string, *symboldump_text;
 
@@ -4304,6 +4314,7 @@ symboldump(void)
 		double_space;
 		OUTPUT(0, &symbol_table_dump);
 		blank_line;
+		OUTPUT(0, &symbol_header);
 		for (i = procmark; i <= ndecsy; i++) {
 			sytsort[i] = i;
 		}
@@ -5433,6 +5444,10 @@ synthesize(int production_number)
 			CAT(&ps_text(mp), synthesize_string, &input_tail);
 			ps_type[mp] = DESCRIPT;
 			break;
+		case BIN_CONSTANT:
+			ps_type[mp] = CONSTANT;
+			ps_value[mp] = syt_disp[sym];
+			break;
 		default:
 			break;
 		}
@@ -5446,6 +5461,7 @@ synthesize(int production_number)
 
 		/*  Either a procedure call, array or built in function */
 		switch (ps_bin[mp]) {
+		case BIN_CONSTANT:
 		case BIN_SCALAR:
 			{
 				static STRING not_array =

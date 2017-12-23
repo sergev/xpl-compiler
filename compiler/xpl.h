@@ -21,22 +21,22 @@
 typedef intmax_t XPL_LONG;
 typedef uintmax_t XPL_UNSIGNED_LONG;
 typedef uintptr_t XPL_ADDRESS;
-#define XPL_TYPEDEFS
+#define __XPL_TYPEDEFS
 #endif
 
-#if !defined(XPL_TYPEDEFS) && defined(__INTMAX_TYPE__)
+#if !defined(__XPL_TYPEDEFS) && defined(__INTMAX_TYPE__)
 /* GNUC */
 typedef __INTMAX_TYPE__ XPL_LONG;
 typedef __UINTMAX_TYPE__ XPL_UNSIGNED_LONG;
 typedef __PTRDIFF_TYPE__ XPL_ADDRESS;
-#define XPL_TYPEDEFS
+#define __XPL_TYPEDEFS
 #endif
 
 /*
 **	If your machine does not support 64-bit integers or you just don't
 **	know what the correct values should be then use the following.
 */
-#if !defined(XPL_TYPEDEFS)
+#if !defined(__XPL_TYPEDEFS)
 /* A generic 32-bit implementation */
 typedef long XPL_LONG;
 typedef unsigned long XPL_UNSIGNED_LONG;
@@ -90,6 +90,9 @@ int xprintf(int, void *ref, __xpl_string *xfmt, ...);
 int xunlink(__xpl_string *file);
 int xrewind(int unit);
 int xmkstemp(__xpl_string *file, __xpl_string *mode);
+
+/* XPL specific xerrno values */
+#define __XPL_EOF -1
 
 /* Runtime statistics.  Used for debugging */
 void __xpl_info(void);

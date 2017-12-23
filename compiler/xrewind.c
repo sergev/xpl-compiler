@@ -26,12 +26,12 @@ xrewind(int unit)
 
 	if (unit < 0 || unit >= __XPL_FILE_MAX) {
 		fprintf(stderr, "Unit number out of range: %d.\n", unit);
-		xerrno = -1;
+		xerrno = EBADF;
 		return -1;
 	}
 	if (!__xpl_FILE_out[unit]) {
 		fprintf(stderr, "Unit number not open: %d.\n", unit);
-		xerrno = -1;
+		xerrno = ENODEV;
 		return -1;
 	}
 	result = fseek(__xpl_FILE_out[unit], 0L, SEEK_SET);

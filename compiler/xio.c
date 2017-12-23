@@ -51,12 +51,12 @@ __xpl_output(int num, __xpl_string *str)
 
 	if (num < 0 || num >= __XPL_FILE_MAX) {
 		fprintf(stderr, "Unit number out of range: %d.\n", num);
-		xerrno = -1;
+		xerrno = EBADF;
 		return str;
 	}
 	if (!__xpl_FILE_out[num]) {
 		fprintf(stderr, "Unit number not open: %d.\n", num);
-		xerrno = -1;
+		xerrno = ENODEV;
 		return str;
 	}
 	clearerr(__xpl_FILE_out[num]);
@@ -93,12 +93,12 @@ __xpl_input(__xpl_string *outstr, int num)
 	int chr;
 
 	if (num < 0 || num >= __XPL_FILE_MAX) {
-		xerrno = -1;
+		xerrno = EBADF;
 		outstr->_Length = 0;
 		return outstr;
 	}
 	if (!__xpl_FILE_in[num]) {
-		xerrno = -1;
+		xerrno = ENODEV;
 		outstr->_Length = 0;
 		return outstr;
 	}
@@ -120,7 +120,7 @@ __xpl_input(__xpl_string *outstr, int num)
 		chr = getc(__xpl_FILE_in[num]);
 		if (chr == EOF) {
 			if (feof(__xpl_FILE_in[num])) {
-				xerrno = -1;
+				xerrno = __XPL_EOF;
 			} else {
 				xerrno = ferror(__xpl_FILE_in[num]);
 			}
@@ -175,7 +175,7 @@ xfopen(__xpl_string *filename, __xpl_string *mode)
 	/* Find an empty slot for the I/O stream */
 	for (x = 0; ; x++) {
 		if (x >= __XPL_FILE_MAX) {
-			xerrno = -1;
+			xerrno = ENFILE;
 			return -1;
 		}
 		if (!__xpl_FILE_in[x] && !__xpl_FILE_out[x]) {
@@ -217,7 +217,7 @@ xfclose(int unit)
 	FILE *fp;
 
 	if (unit < 0 || unit >= __XPL_FILE_MAX) {
-		xerrno = -1;
+		xerrno = EBADF;
 		return -1;
 	}
 	xerrno = 0;
@@ -252,7 +252,7 @@ __xpl_read_file(int unit, int rec, void *buffer, unsigned long rec_size)
 	int val;
 
 	if (unit < 0 || unit >= __XPL_FILE_MAX) {
-		xerrno = -1;
+		xerrno = EBADF;
 		return -1;
 	}
 	if (file_record_size) {
@@ -272,7 +272,7 @@ __xpl_read_file(int unit, int rec, void *buffer, unsigned long rec_size)
 		}
 		return val;
 	}
-	xerrno = -1;
+	xerrno = ENODEV;
 	return -1;
 }
 
@@ -289,7 +289,7 @@ __xpl_write_file(int unit, int rec, void *buffer, unsigned long rec_size)
 	int val;
 
 	if (unit < 0 || unit >= __XPL_FILE_MAX) {
-		xerrno = -1;
+		xerrno = EBADF;
 		return -1;
 	}
 	if (file_record_size) {
@@ -309,6 +309,6 @@ __xpl_write_file(int unit, int rec, void *buffer, unsigned long rec_size)
 		}
 		return val;
 	}
-	xerrno = -1;
+	xerrno = ENODEV;
 	return -1;
 }
