@@ -719,7 +719,7 @@ enum specials {BIN_SCALAR, BIN_ARRAY, BIN_STRING, BIN_CHAR_POINTER, BIN_CALL,
 	BIN_INPUT, BIN_OUTPUT, BIN_FILE, BIN_INLINE, BIN_ADDR, BIN_SADDR,
 	BIN_COREBYTE, BIN_COREHALFWORD, BIN_COREWORD, BIN_CORELONGWORD,
 	BIN_BUILD_DESCRIPTOR, BIN_XFPRINTF, BIN_XPRINTF, BIN_XSPRINTF,
-	BIN_CONSTANT};
+	BIN_CONSTANT, BIN_NOP};
 
 struct builtin_s builtin[] = {
 	{FIXEDTYPE, 0, 0, STR("time_of_generation")},
@@ -730,8 +730,6 @@ struct builtin_s builtin[] = {
 	{FIXEDTYPE, 0, 0, STR("argc")},
 	{PROC_BIT32, 0, 0, STR("time")},
 	{PROC_BIT32, 0, 0, STR("date")},
-	{PROC_VOID, 0, 0, STR("trace")},
-	{PROC_VOID, 0, 0, STR("untrace")},
 	{PROC_VOID, 0, 0, STR("compactify")},
 	{PROC_VOID, 0, 0, STR("exit")},
 	{FIXEDTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow exit()  */
@@ -776,6 +774,8 @@ struct builtin_s builtin[] = {
 	{SPECIAL, BIN_XFPRINTF, 0, STR("xfprintf")},
 	{SPECIAL, BIN_XPRINTF, 0, STR("xprintf")},
 	{SPECIAL, BIN_XSPRINTF, 0, STR("xsprintf")},
+	{SPECIAL, BIN_NOP, 0, STR("trace")},
+	{SPECIAL, BIN_NOP, 0, STR("untrace")},
 	{0, 0, 0, {0, 0}}
 };
 
@@ -2139,7 +2139,7 @@ string_constant(STRING *string)
 	fprintf(string_file, "static __xpl_string %s = {%d, \"",
 		string_constant_text->_Address, string->_Length);
 	release_temp_descriptor(1);
-	len = 25 + 9 + 3;
+	len = 27 + 9 + 3;
 	for (i = 0; i < string->_Length; i++) {
 		if (len > 70) {
 			fprintf(string_file, "\"\n\"");
@@ -2155,6 +2155,54 @@ string_constant(STRING *string)
 		}
 	}
 	fprintf(string_file, "\"};\n");
+	return v;
+}
+
+/*
+**	string_variable(string)
+**
+**	Emit a string variable to the .xh file.
+**	The data in the string is placed in read/write memory.
+**	This is done to be compatable with the original XPL compiler.
+**	Return the fabricated variable number.
+*/
+int
+string_variable(STRING *string)
+{
+	STRING *string_variable_text, *string_variable_name;
+	int v, i, len, ch;
+
+	if (string->_Length == 0) {
+		/* NULL strings are never writable */
+		return string_constant(string);
+	}
+	string_variable_text = get_temp_descriptor();
+	string_variable_name = get_temp_descriptor();
+	temp_name(string_variable_text, next_temp(), 1);
+	fprintf(string_file, "static char %s[%d] = {\"",
+		string_variable_text->_Address, string->_Length + 1);
+	len = 19 + 9 + 3;
+	for (i = 0; i < string->_Length; i++) {
+		if (len > 70) {
+			fprintf(string_file, "\"\n\"");
+			len = 1;
+		}
+		ch = string->_Address[i] & 255;
+		if (printing[ch]) {
+			putc(ch, string_file);
+			len++;
+		} else {
+			fprintf(string_file, "\\%03o", ch);
+			len += 4;
+		}
+	}
+	fprintf(string_file, "\"};\n");
+	v = next_temp();
+	temp_name(string_variable_name, v, 1);
+	fprintf(string_file, "static __xpl_string %s = {%d, %s};\n",
+		string_variable_name->_Address, string->_Length,
+		string_variable_text->_Address);
+	release_temp_descriptor(2);
 	return v;
 }
 
@@ -3008,7 +3056,7 @@ setinit(int p, int vp)
 			error(&bad_constant, __LINE__, 0);
 			ps_name(vp) = null_terminator;  /* Place holder */
 		}
-		i = string_constant(&ps_name(vp));
+		i = string_variable(&ps_name(vp));
 		enter_init_string(dsp++, i);
 	} else
 	if (ps_type[vp] != CONSTANT) {
@@ -4028,7 +4076,6 @@ dump_token(void)
 int
 initialize(void)
 {
-	static STRING splash = STR("XPL to C language translator -- version 0.5");
 	static STRING line_name = STR("__LINE__");
 	static STRING address = STR("address");
 	static STRING bit32 = STR("bit(32)");
@@ -4041,9 +4088,6 @@ initialize(void)
 	if (__xpl_runtime_init(0x8000)) {
 		return 1;
 	}
-
-	/* Announce the compiler */
-	OUTPUT(0, &splash);
 
 	input_unit = 0;  /* Default is stdin */
 	if (input_filename) {
@@ -4304,7 +4348,7 @@ symboldump(void)
 	short sytsort[SYTSIZE + 1];
 	static STRING symbol_table_dump = STR("Symbol  table  dump");
 	static STRING symbol_header =
-		STR("Identifier               Type     Displacement  Line   Usage");
+		STR("Identifier               Type         Location  Line   Refs");
 	static STRING param = STR("  parameter  ");
 	STRING *symboldump_string, *symboldump_text;
 
@@ -5448,6 +5492,10 @@ synthesize(int production_number)
 			ps_type[mp] = CONSTANT;
 			ps_value[mp] = syt_disp[sym];
 			break;
+		case BIN_NOP:
+			ps_type[mp] = PROC_VOID;
+			ps_text(mp)._Length = 0;
+			break;
 		default:
 			break;
 		}
@@ -5882,6 +5930,10 @@ synthesize(int production_number)
 				ps_text(mp) = bin_xsprintf;
 			}
 			break;
+		case BIN_NOP:
+			ps_type[mp] = PROC_VOID;
+			ps_text(mp)._Length = 0;
+			break;
 		default:
 			break;
 		}
@@ -6031,6 +6083,8 @@ synthesize(int production_number)
 			forcedescript(mpp1, DESCRIPT);
 			CAT(synthesize_string, &ps_text(mp), &ps_text(mpp1));
 			CAT(&ps_text(mp), synthesize_string, &comma_x1);
+			break;
+		case BIN_NOP:
 			break;
 		default:
 			too_many_arguments(mp, __LINE__);
@@ -6280,7 +6334,9 @@ print_summary(void)
 	static STRING last_detected = STR("The last detected error was on line ");
 	STRING *print_summary_text;
 
-	blank_line;
+	if ((control['L'] | control['M']) & 1) {
+		blank_line;
+	}
 	print_summary_text = get_temp_descriptor();
 	DECIMAL(print_summary_text, card_count);
 	CAT(print_summary_text, print_summary_text, &cards);
@@ -6350,6 +6406,8 @@ main(int argv, char **argc)
 {
 	int i, j, k, show_usage = 0;
 	char *kp;
+
+	printf("XPL to C language translator -- version 0.5\n");
 
 	argv_limit = 32;
 	temp_descriptor = DESCRIPTOR_STACK;

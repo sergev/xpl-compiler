@@ -620,25 +620,3 @@ __xpl__time(void)
 
 	return (tv.tv_usec / 10000) + sec * 100;
 }
-
-/*
-**	trace()
-**
-**	Not implemented
-*/
-void
-trace(void)
-{
-	;
-}
-
-/*
-**	untrace()
-**
-**	Not implemented
-*/
-void
-untrace(void)
-{
-	;
-}

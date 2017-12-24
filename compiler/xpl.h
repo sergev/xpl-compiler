@@ -102,9 +102,6 @@ __xpl_string *c2x_string(__xpl_string *outstr, char *p);
 char *x2c_string(__xpl_string *str);
 char *__c_decimal(XPL_LONG number);
 
-void trace(void);
-void untrace(void);
-
 /* Functions we wish to hide from the linker */
 int __xpl__date(void);
 int __xpl__time(void);
