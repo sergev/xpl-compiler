@@ -5887,7 +5887,11 @@ synthesize(int production_number)
 			ps_bin[mp] = BIN_ACCUMULATOR;
 			break;
 		case BIN_XPRINTF:
-			the_big_easy(mpp1);
+			if (ps_cnt[mp] == 1) {
+				forcedescript(mpp1, DESCRIPT);
+			} else {
+				the_big_easy(mpp1);
+			}
 			CAT(synthesize_string, &ps_text(mp), &ps_text(mpp1));
 			CAT(&ps_text(mp), synthesize_string, &close_paren);
 			ps_type[mp] = FIXEDTYPE;
@@ -5898,7 +5902,11 @@ synthesize(int production_number)
 			if (ps_cnt[mp] < 2) {
 				too_few_arguments(mp, __LINE__);
 			}
-			the_big_easy(mpp1);
+			if (ps_cnt[mp] == 2) {
+				forcedescript(mpp1, DESCRIPT);
+			} else {
+				the_big_easy(mpp1);
+			}
 			CAT(synthesize_string, &ps_text(mp), &ps_text(mpp1));
 			CAT(&ps_text(mp), synthesize_string, &close_paren);
 			ps_type[mp] = FIXEDTYPE;
@@ -6071,32 +6079,32 @@ synthesize(int production_number)
 		case BIN_XPRINTF:
 			if (ps_cnt[mp] == 1) {
 				forcedescript(mpp1, DESCRIPT);
-				CAT(synthesize_string, &ps_text(mp), &ps_text(mpp1));
-				CAT(&ps_text(mp), synthesize_string, &comma_x1);
 			} else {
 				the_big_easy(mpp1);
-				CAT(synthesize_string, &ps_text(mp), &ps_text(mpp1));
-				CAT(&ps_text(mp), synthesize_string, &comma_x1);
 			}
+			CAT(synthesize_string, &ps_text(mp), &ps_text(mpp1));
+			CAT(&ps_text(mp), synthesize_string, &comma_x1);
 			break;
 		case BIN_XFPRINTF:
 			if (ps_cnt[mp] == 2) {
 				forcedescript(mpp1, DESCRIPT);
-				CAT(synthesize_string, &ps_text(mp), &ps_text(mpp1));
-				CAT(&ps_text(mp), synthesize_string, &comma_x1);
 			} else {
 				the_big_easy(mpp1);
-				CAT(synthesize_string, &ps_text(mp), &ps_text(mpp1));
-				if (ps_cnt[mp] == 1) {
-					CAT(&ps_text(mp), synthesize_string, &close_comma_x1);
-				} else {
-					CAT(&ps_text(mp), synthesize_string, &comma_x1);
-				}
+			}
+			CAT(synthesize_string, &ps_text(mp), &ps_text(mpp1));
+			if (ps_cnt[mp] == 1) {
+				CAT(&ps_text(mp), synthesize_string, &close_comma_x1);
+			} else {
+				CAT(&ps_text(mp), synthesize_string, &comma_x1);
 			}
 			break;
 		case BIN_XSPRINTF:
 			if (ps_cnt[mp] > 1) {
-				the_big_easy(mpp1);
+				if (ps_cnt[mp] == 2) {
+					forcedescript(mpp1, DESCRIPT);
+				} else {
+					the_big_easy(mpp1);
+				}
 				CAT(synthesize_string, &ps_text(mp), &ps_text(mpp1));
 				CAT(&ps_text(mp), synthesize_string, &comma_x1);
 				break;
