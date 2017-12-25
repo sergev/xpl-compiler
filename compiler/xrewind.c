@@ -34,6 +34,7 @@ xrewind(int unit)
 		xerrno = ENODEV;
 		return -1;
 	}
+	__xpl_FILE_eol[unit] = 0;
 	result = fseek(__xpl_FILE_out[unit], 0L, SEEK_SET);
 	if (result != 0) {
 		xerrno = errno;

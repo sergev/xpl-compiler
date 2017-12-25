@@ -21,6 +21,7 @@ static __xpl_string null_terminator = {1, "\000"};
 __xpl_FILE *__xpl_FILE_in[__XPL_FILE_MAX];
 __xpl_FILE *__xpl_FILE_out[__XPL_FILE_MAX];
 int __xpl_FILE_flags[__XPL_FILE_MAX];
+char __xpl_FILE_eol[__XPL_FILE_MAX];
 int xerrno;
 XPL_ADDRESS file_record_size;	/* Max record size for builtin function FILE() */
 
@@ -36,6 +37,7 @@ __xpl_io_init(void)
 	__xpl_FILE_in[0] = stdin;
 	__xpl_FILE_out[0] = stdout;
 	__xpl_FILE_out[1] = stderr;
+	__xpl_FILE_eol[0] = __xpl_FILE_eol[1] = 0;
 }
 
 /*
@@ -82,7 +84,8 @@ __xpl_output(int num, __xpl_string *str)
 /*
 **	__xpl_input(__xpl_string *outstr, int num)
 **
-**	Read a string.  Read characters up to a <cr> or <lf>
+**	Read a string.  Read characters up to a newline.
+**	Newline may be: <cr>, <lf>, <cr><lf>, or <lf><cr>.
 **	Returns the string and sets xerrno if errors
 */
 __xpl_string *
@@ -130,12 +133,15 @@ __xpl_input(__xpl_string *outstr, int num)
 			/* Return all characters.  Including <cr> and <lf> */
 			outstr->_Length++;
 			*cp++ = chr;
-			if (chr == '\n') {
-				break;
-			}
 			continue;
 		}
 		if (chr == '\n') {
+			if (__xpl_FILE_eol[num] == '\r') {
+				/* <cr> <lf> */
+				__xpl_FILE_eol[num] = 0;
+				continue;
+			}
+			__xpl_FILE_eol[num] = '\n';
 			/* If this is a null string then pad it with one blank */
 			if (outstr->_Length == 0) {
 				/* This allows the user to detect EOF */
@@ -144,10 +150,24 @@ __xpl_input(__xpl_string *outstr, int num)
 			}
 			break;
 		}
-		if (chr != '\r') {
-			outstr->_Length++;
-			*cp++ = chr;
+		if (chr == '\r') {
+			if (__xpl_FILE_eol[num] == '\n') {
+				/* <lf> <cr> */
+				__xpl_FILE_eol[num] = 0;
+				continue;
+			}
+			__xpl_FILE_eol[num] = '\r';
+			/* If this is a null string then pad it with one blank */
+			if (outstr->_Length == 0) {
+				/* This allows the user to detect EOF */
+				outstr->_Length++;
+				*cp++ = ' ';
+			}
+			break;
 		}
+		outstr->_Length++;
+		*cp++ = chr;
+		__xpl_FILE_eol[num] = 0;
 	}
 	if (outstr->_Length) {
 		freepoint += outstr->_Length;
@@ -184,6 +204,7 @@ xfopen(__xpl_string *filename, __xpl_string *mode)
 	}
 	/* Move the mode bytes into a C string */
 	l = mode->_Length;
+	__xpl_FILE_eol[x] = 0;
 	__xpl_FILE_flags[x] = 0;
 	for (i = 0; i < l && i < (sizeof(m) - 1); i++) {
 		if ((m[i] = mode->_Address[i]) == 'b') {

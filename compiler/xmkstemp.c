@@ -64,6 +64,7 @@ xmkstemp(__xpl_string *template, __xpl_string *mode)
 	}
 	/* Move the mode bytes into a C string */
 	l = mode->_Length;
+	__xpl_FILE_eol[x] = 0;
 	__xpl_FILE_flags[x] = 0;
 	for (i = 0; i < l && i < (sizeof(m) - 1); i++) {
 		if ((m[i] = mode->_Address[i]) == 'b') {
