@@ -3965,7 +3965,7 @@ for_loop(void)
 	static STRING for_head = STR("for (");
 	static STRING step = STR(" += ");
 	STRING *for_loop_string, *for_loop_temp, *for_loop_substr;
-	int mpp2, sym, aop;
+	int mpp2, sym, aop, need_comma, type_mpp2;
 	char *symtype;
 
 	if (ps_type[mp] < BOOLEAN || ps_type[mp] > DOUBLEWORD) {
@@ -3982,46 +3982,82 @@ for_loop(void)
 			error(&bad_subscript, __LINE__, 0);
 		}
 	}
-	symtype = dcltypes[syt_type[sym]]._Address;
 	mpp2 = mp + 2;
+	type_mpp2 = ps_type[mpp2];
 	forceaccumulator(mpp2, ps_type[mp], TRUE);
-	CAT(for_loop_string, &for_head, &ps_text(mp));
-	CAT(for_loop_string, for_loop_string, &x1_equal_x1);
-	CAT(for_loop_string, for_loop_string, &ps_text(mpp2));
+	symtype = dcltypes[syt_type[sym]]._Address;
+	*for_loop_string = for_head;
+	need_comma = FALSE;
+	if (type_mpp2 != CONSTANT) {
+		if (COMPARE(&ps_text(mp), &ps_text(mpp2)) == 0) {
+			/* Setting the loop variable to itself */
+			ps_text(mpp2)._Length = 0;
+		} else
+		if (ps_type[sp] != CONSTANT || ps_type[0] != CONSTANT) {
+			/* temp(mpp2) = text(mpp2) */
+			temp_name(for_loop_temp, next_temp(), 1);
+			SUBSTR3(for_loop_substr, for_loop_temp, 0, for_loop_temp->_Length - 1);
+			CAT(for_loop_string, for_loop_string, for_loop_substr);
+			CAT(for_loop_string, for_loop_string, &x1_equal_x1);
+			CAT(for_loop_string, for_loop_string, &ps_text(mpp2));
+			ps_text(mpp2) = *for_loop_substr;
+			fprintf(string_file, "static %s%s;\n", symtype, for_loop_temp->_Address);
+			need_comma = TRUE;
+		}
+	}
 	if (ps_type[sp] != CONSTANT) {
+		/* , temp(sp) = text(sp) */
 		temp_name(for_loop_temp, next_temp(), 1);
 		SUBSTR3(for_loop_substr, for_loop_temp, 0, for_loop_temp->_Length - 1);
-		CAT(for_loop_string, for_loop_string, &comma_x1);
+		if (need_comma) {
+			CAT(for_loop_string, for_loop_string, &comma_x1);
+		}
 		CAT(for_loop_string, for_loop_string, for_loop_substr);
 		CAT(for_loop_string, for_loop_string, &x1_equal_x1);
 		CAT(for_loop_string, for_loop_string, &ps_text(sp));
 		ps_text(sp) = *for_loop_substr;
 		fprintf(string_file, "static %s%s;\n", symtype, for_loop_temp->_Address);
+		need_comma = TRUE;
 	} else {
 		forceaccumulator(sp, ps_type[mp], TRUE);
 	}
 	aop = AOP_LE;
 	if (ps_type[0] != CONSTANT) {
+		/* , temp(0) = text(0) */
 		temp_name(for_loop_temp, next_temp(), 1);
 		SUBSTR3(for_loop_substr, for_loop_temp, 0, for_loop_temp->_Length - 1);
-		CAT(for_loop_string, for_loop_string, &comma_x1);
+		if (need_comma) {
+			CAT(for_loop_string, for_loop_string, &comma_x1);
+		}
 		CAT(for_loop_string, for_loop_string, for_loop_substr);
 		CAT(for_loop_string, for_loop_string, &x1_equal_x1);
 		CAT(for_loop_string, for_loop_string, &ps_text(0));
 		ps_text(0) = *for_loop_substr;
 		fprintf(string_file, "static %s%s;\n", symtype, for_loop_temp->_Address);
+		need_comma = TRUE;
 	} else {
 		if (ps_value[0] < 0) {
 			aop = AOP_GE;
 		}
 		forceaccumulator(0, ps_type[mp], TRUE);
 	}
+	if (ps_text(mpp2)._Length > 0) {
+		/* , text(mp) = text(mpp2) */
+		if (need_comma) {
+			CAT(for_loop_string, for_loop_string, &comma_x1);
+		}
+		CAT(for_loop_string, for_loop_string, &ps_text(mp));
+		CAT(for_loop_string, for_loop_string, &x1_equal_x1);
+		CAT(for_loop_string, for_loop_string, &ps_text(mpp2));
+	}
+	/* ; text(mp) <= text(sp) */
 	CAT(for_loop_string, for_loop_string, &semicolon_x1);
 	CAT(for_loop_string, for_loop_string, &ps_text(mp));
 	CAT(for_loop_string, for_loop_string, &aop_string[aop]);
 	CAT(for_loop_string, for_loop_string, &ps_text(sp));
-	CAT(for_loop_string, for_loop_string, &semicolon_x1);
 
+	/* ; text(mp) += text(0) */
+	CAT(for_loop_string, for_loop_string, &semicolon_x1);
 	CAT(for_loop_string, for_loop_string, &ps_text(mp));
 	CAT(for_loop_string, for_loop_string, &step);
 	CAT(for_loop_string, for_loop_string, &ps_text(0));
