@@ -7,11 +7,12 @@
 {\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc0\levelnfcn0\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{decimal\}.}{\leveltext\leveltemplateid1\'02\'00.;}{\levelnumbers\'01;}\fi-360\li720\lin720 }{\listname ;}\listid1}}
 {\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}}
 {\info
-{\author Daniel Weaver}}\margl1440\margr1440\vieww12880\viewh18700\viewkind0
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\qc\partightenfactor0
+{\author Daniel Weaver}}\margl1440\margr1440\vieww11880\viewh18700\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ri-2162\pardirnatural\qc\partightenfactor0
 
 \f0\fs24 \cf0 XPL to C Source Language Translator\
-Daniel Weaver\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\qc\partightenfactor0
+\cf0 Daniel Weaver\
 \
 \pard\tx220\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li720\fi-720\pardirnatural\partightenfactor0
 \ls1\ilvl0\cf0 1.		Introduction\cf2 \cb3 \
@@ -137,7 +138,9 @@ Daniel Weaver\
 		\\xHH	Hex byte\
 		\\777	Octal\
 \
-	    This feature is very useful when used with the xprintf() function.  Example:\
+	    This feature is very useful when used with the 
+\b xprintf
+\b0  function.  Example:\
 		
 \b do k = 1 to 10;\
 			call xprintf("(c)The value of k is %d\\n", k);\
@@ -168,7 +171,7 @@ Daniel Weaver\
 \
 	      The XPL compiler has two types of comments.  It supports the // comment as well as the /* */ style comment of PL/I.  Comments that start with a // extend to the end of the line and may be placed anywhere on the line.  Comments that start with a slash asterisk(/*) extend to the next asterisk slash (*/).  Comments may span record boundaries and contain any character.  Comments may appear anywhere a blank may appear except within bit strings.  Generally comments do not affect the execution of the program and should be used freely to document the text.  Example:\
 		/* THIS IS A COMMENT */\
-	      Comments may contain control toggles that may have some effect on your program.  Control toggles are characters proceeded by a dollar sign ($).  The toggles are turned on or off by a dollar sign followed by the character(e.g. $S).  Control toggles may also be set on the command line when the compiler is invoked.  Most control toggles are upper case letters.\
+	      PL/I style comments may contain control toggles that may have some effect on your program.  Control toggles are characters proceeded by a dollar sign ($).  The toggles are turned on or off by a dollar sign followed by the character(e.g. $S).  Control toggles may also be set on the command line when the compiler is invoked.  Most control toggles are upper case letters.\
 	      The control toggles may be pushed or popped using $>
 \b <letter>
 \b0  or $<
@@ -196,7 +199,7 @@ Daniel Weaver\
 \
 	      The XPL compiler supports 8 data types that may be used for data storage or arithmetic expressions.  Identifiers declared as BIT(1) are assumed to be boolean values that hold only the value of 0 or 1.  They are allocated as 
 \i char
-\i0  and may be used in arithmetic expressions.  Identifiers declared as BIT(2) thru BIT(8) are also allocated as 
+\i0  and may be used in arithmetic expressions.  Identifiers declared as BIT(2) thru BIT(8) are allocated as 
 \i unsigned char
 \i0  and may hold the values of 0 thru 255.  Identifiers declared as BIT(9) thru BIT(16) will be allocated as 
 \i signed short 
@@ -398,7 +401,9 @@ Daniel Weaver\
 \
 4.3	Transparent procedure definitions\
 \
-	     When you include a C header file with the inline function the function prototypes defined in the header file should be used rather than a function prototype created by the XPL compiler.  The transparent keyword tells the compiler to enter the function into the symbol table but don\'92t generate any code to define the function in the output file.\
+	     When you include a C header file with the 
+\b inline
+\b0  function the function prototypes defined in the header file should be used rather than a function prototype created by the XPL compiler.  The transparent keyword tells the compiler to enter the function into the symbol table but don\'92t generate any code to define the function in the output file.\
 \
 		
 \b call inline('#include <stdio.h>');\
@@ -412,7 +417,7 @@ Daniel Weaver\
 \
 4.4	Scope\
 \
-	      Identifiers may only be referenced within their proper scope.  The scope of an identifier declared before any procedure definition, is any statement following the declaration.  Identifiers declared within procedures may only be referenced within the procedure they were declared in.  After each procedure ends, all variables defined in the procedure are removed from the symbol table.  The storage space allocated to the static variables within the procedure is not deallocated.  Values stored in these variables will remain until changed by another call to the procedure.  Procedures also permit the redeclaration of variables.  The compiler searches the most recent procedure first, then any other nested procedures, then global references, then built-in functions.\
+	      Identifiers may only be referenced within their proper scope.  The scope of an identifier declared before any procedure definition, is any statement following the declaration.  Identifiers declared within procedures may only be referenced within the procedure they were declared in.  After each procedure ends, all variables defined in the procedure are removed from the symbol table.  Variables promoted to Global Scope will retain their value but all other variables will be undefined on subsequent calls to the procedure.  Procedures also permit the redeclaration of variables.  The compiler searches the most recent procedure first, then any other nested procedures, then global references, then built-in functions.\
 	      This XPL compiler implements nested functions without support for nested functions in the target C compiler.  In order to do this most of the variables in the outer function have to be promoted to global scope.  This changes where the variables are allocated.  Normally they would be allocated on the stack but a nested function will cause them to be static in the generated C code.  The XPL compiler will display a list of variables that have been promoted to global scope when using the $D option to dump internal tables at the end of compilation.\
 \
 4.5	Call and Return\
@@ -441,7 +446,7 @@ Daniel Weaver\
 \
 4.7	What happened to the main procedure?\
 \
-	     XPL does not use a main procedure like in PL/I or C.  Statements that are not enclosed within a procedure are assumed to be the start of execution.  These statements appear as though they were enclosed in a PL/I procedure with 
+	     XPL does not use a main procedure like PL/I or C.  Statements that are not enclosed within a PROCEDURE are assumed to be the start of execution.  These statements appear as though they were enclosed in a PL/I procedure with 
 \b procedure options(main)
 \b0 .  
 \b main
@@ -490,7 +495,7 @@ Daniel Weaver\
 \
 		void xpl_code(void);\
 \
-		int main(int arc, char **argv) \{\
+		int main(int argc, char **argv) \{\
 			/* Initialize the XPL run time.  Only do this once. */\
 			if (__xpl_runtime_init(0)) return 1;\
 			__xpl_init_strings();\
@@ -499,7 +504,7 @@ Daniel Weaver\
 			in the XPL code. */\
 			xpl_code();\
 			/* Be careful when naming the XPL functions.  Choose an\
-			<identifier> that is legal in both languages.  e.g. Don\'92t\
+			<identifier> that is legal in both languages.  i.e. Don\'92t\
 			define a function like build#value. */\
 			return 0;\
  		\}
@@ -721,13 +726,15 @@ Daniel Weaver\
 \
 7.1	I/O Considerations\
 \
-	      All I/O operations in XPL require a unit number.  The runtime package has a table that maps unit number to FILE pointer.  The same table is used for both input and output except for unit zero.  The default unit numbers are:\
+	      All I/O operations in XPL require a unit number.  The runtime package has a table that maps unit number to FILE pointers.  The same table is used for both input and output except for unit zero.  The default unit numbers are:\
 		Input unit 0 -> stdin		Output unit 0 -> stdout\
 		Unit 1 -> stderr\
 \
-	All other unit numbers are undefined when the program starts up.  They may be assigned by using the builtin function xfopen().\
+	All other unit numbers are undefined when the program starts up.  They may be assigned by using the builtin function 
+\b xfopen
+\b0 .\
 \
-	      I/O errors will set the variable 
+	      I/O errors detected by the XPL runtime will set the variable 
 \b xerrno
 \b0  to the value of the errno variable which is normally set by the C runtime library.\
 \
@@ -832,7 +839,7 @@ Appendix A --- Compiler Options --- \
 	Compiler Toggles may be set on the command line or embedded in PL/I style comments.\
 \
 	-D		Dump stats at the end of compilation.\
-	-G		Use this option when cross compiling from a 64 bit machine to a 32 bit machine.  This option turns off BIT(64).\
+	-G		Use this option when cross compiling from a 64 bit machine to a 32 bit machine.  This option makes the compiler interpret BIT(64) as a character string instead of an integer.\
 	-H		Hide identifiers from the C compiler.  If your program uses an identifier name that is a standard C function such as strlen() or memcpy() you can use this option to tell the XPL compiler to mangle the names so they do not conflict with default definitions in the C language.  When this toggle is used within a comment it only needs to be placed around the definition of the variable.  Example:\
 				/* $H  Hide this variable from the C compiler */\
 				declare strlen fixed;\
@@ -1066,6 +1073,27 @@ Appendix B --- Built-in Functions --- \
 				inline('server.sin_family') = AF_INET;
 \b0 \
 \
+			    The inline function may be used to insert or remove casts from a statement as is done by this example:\
+\
+				
+\b call inline('#include <string.h>');\
+\
+				strchr: procedure(s, c) address transparent;\
+				   declare s address, c fixed;\
+				   end strchr;\
+\
+				declare result address;\
+				declare string character(80);\
+\
+				result = inline('(XPL_ADDRESS)', strchr(inline(string), byte('?')));
+\b0 \
+\
+			    The 
+\b strchr()
+\b0  call generates the following line:\
+				
+\b result = (XPL_ADDRESS)strchr(string, 63);
+\b0 \
 \
 	input(unit)	A CHARACTER function that reads one record from the specified 
 \b unit
@@ -1082,13 +1110,17 @@ Appendix B --- Built-in Functions --- \
 \b input
 \b0  function reads characters up to a new-line indicator (LineFeed on UNIX, CarriageReturn/LineFeed on MS-DOS).  The new-line indicator is discarded and the remaining text is returned.  End-of-file is indicated by returning a zero-length string.  Lines that would otherwise be of length zero (after trimming) will be padded with one blank to distinguish them from End-of-file.\
 \
-			If you open a file as binary it will return all characters in the input stream.  Reading a binary file will typically return a string of 1024 bytes.  
+			If you open a file in binary mode it will return all characters in the input stream.  Reading a binary file will typically return a string of 1024 bytes.  An End-of-file will be indicated by returning a null string.  See 
+\b xfopen
+\b0  for a description of how to open a file in binary mode.\
+\
+			Both versions of the 
+\b input
+\b0  function will set 
 \b xerrno
-\b0  will be set to 
+\b0  to 
 \b XPL_EOF
-\b0  to indicate an End-of-file.  See 
-\b xfopen()
-\b0  function.\
+\b0  to indicate an End-of-file.\
 \
 	input		Same as 
 \b input(0)
@@ -1107,7 +1139,7 @@ Appendix B --- Built-in Functions --- \
 \b0 .  Unit one is 
 \b stderr
 \b0 .  A newline is appended to each output line unless the output is opened as a binary device with 
-\b xfopen()
+\b xfopen
 \b0 .  Examples:\
 \
 
@@ -1125,7 +1157,7 @@ Appendix B --- Built-in Functions --- \
 \
 	saddr(string)	This function returns the address portion of the string descriptor.  If the string is in the dynamic string area the 
 \b compactly
-\b0  procedure might move the string causing the results of the 
+\b0  procedure \ul might\ulnone  move the string causing the results of the 
 \b saddr()
 \b0  function to be invalid.  As a result the address has a very limited lifespan.  The address returned by a null string may contain garbage.  You should check for length equals zero before using this function.\
 \
@@ -1257,7 +1289,7 @@ Appendix B --- Built-in Functions --- \
 \
 			A successful open will allow both reads and writes to the 
 \b unit
-\b0 .  It is up to the programmer to prevent reads to write only devices and writes to read only devices.\
+\b0 .  It is up to the programmer to prevent reads from write only devices and writes to read only devices.\
 \
 			Example:\
 \
@@ -1269,7 +1301,9 @@ Appendix B --- Built-in Functions --- \
 			end;\
 \
 
-\b0 	xfprintf(unit, format, args, \'85)	A print function that works similar to the fprintf function in the C programming language.  This function returns the number of characters printed.  The unit may be opened with the 
+\b0 	xfprintf(unit, format, args, \'85)	A print function that works similar to the 
+\b fprintf()
+\b0  function in the C programming language.  This function returns the number of characters printed.  The unit may be opened with the 
 \b xfopen
 \b0  function call.  Example:\
 \
@@ -1279,7 +1313,15 @@ Appendix B --- Built-in Functions --- \
 			call xfprintf(unit, "(c) I am %d years old today.\\n", age);\
 \
 
-\b0 	xmkstemp(filename, mode)     Make a temporary file.  This function will call mkstemp() from the C library.  When the xmkstemp function is called the filename is a template that usually has six 'X's in the template.  The xmkstemp call will modify the template to create a unique filename.  The filename is returned in the first argument.  Files created by xmkstemp are not automatically deleted on close.  You will probably want to remove these file by calling 
+\b0 	xmkstemp(filename, mode)     Make a temporary file.  This function will call 
+\b mkstemp()
+\b0  from the C library.  When the 
+\b xmkstemp
+\b0  function is called the filename is a template that usually has six 'X's in the template.  The 
+\b xmkstemp
+\b0  call will modify the template to create a unique filename.  The filename is returned in the first argument.  Files created by 
+\b xmkstemp
+\b0  are not automatically deleted on close.  You will probably want to remove these file by calling 
 \b xunlink
 \b0 .  Example:\
 \
@@ -1304,7 +1346,7 @@ Appendix B --- Built-in Functions --- \
 \b0  call.  However only \'91r+\'92 and \'91r+b' are useful.\
 \
 	xprintf(format, args, \'85)	A print function that works similar to the 
-\b printf
+\b printf()
 \b0  function in the C programming language.  The output is sent to unit zero.  This function returns the number of characters printed.  Example:\
 \
 			
@@ -1373,70 +1415,84 @@ Appendix B --- Built-in Functions --- \
 \
 Appendix C \'97 Name space pollution\
 \
-	This XPL compiler suffers serious name space pollution because it must deal with both XPL identifiers and the special purpose identifiers defined by the underlying C compiler.  The XPL compiler mangles identifiers and PROCEDURE names to minimize the impact of name conflicts.  In the event that a local variable does cause a name conflict the -H option (or the $H flag) may be set to tell the compiler to mangle all identifier names.  However the -H option has no useful effect on PROCEDURES that are declared EXTERNAL.  Identifiers used in the XPL runtime may not be used as EXTERNAL PROCEDURES.  These include:  
-\b x2c_string
-\b0 , 
-\b expand_tabs
-\b0 , 
-\b unique
-\b0  and 
-\b hex
-\b0 .  All reserved words in the C language are not permitted as EXTERNAL PROCEDURE names.  Identifiers promoted to global scope are not permitted as EXTERNAL PROCEDURES.  Identifiers that start with __XPL_ and __xpl_ are reserved for the compiler.\
+	    This XPL compiler suffers serious name space pollution because it must deal with both XPL identifiers and the special purpose identifiers defined by the underlying C compiler.  The XPL compiler mangles identifiers and PROCEDURE names to minimize the impact of name conflicts.  In the event that a local variable does cause a name conflict the -H option (or the $H flag) may be set to tell the compiler to mangle all identifier names.  However the -H option has no useful effect on PROCEDURES that are declared EXTERNAL.  Identifiers used in the XPL runtime may not be used as EXTERNAL PROCEDURES.  All reserved words in the C language are not permitted as EXTERNAL PROCEDURE names.  Identifiers promoted to global scope are not permitted as EXTERNAL PROCEDURES.  Identifiers that start with __XPL and __xpl are reserved for the compiler.\
 \
-	The -D option will display the table of \'93Identifiers promoted to Global Scope\'94 and the table of \'93Identifier mapper definitions\'94 at the end of compilation.  Here is the display from the XPL analyzer.  The variables promoted to global scope depend on the variables used in a nested PROCEDURE.\
+	    The -D option will display the table of \'93Identifiers promoted to Global Scope\'94 and the table of \'93Identifier mapper definitions\'94 at the end of compilation.  The identifiers promoted to global scope depend on the identifiers used in nested PROCEDURES.\
+\
+
+\f1\b 	Identifiers that may not be used as external procedures:\
+\
+	argc\
+	argv\
+	compactify\
+	corebyte\
+	corehalfword\
+	corelongword\
+	coreword\
+	date_of_generation\
+	descriptor\
+	file_record_size\
+	freebase\
+	freelimit\
+	freepoint\
+	ndescript\
+	time_of_generation\
+\
+\
+	Identifiers promoted to Global Scope:\
 \
 	
-\f1\b Identifiers promoted to Global Scope:\
-\
-	scan\
-	sort_v\
-	get_card\
-	add_item\
-	dis_apply\
-	print_date\
-	print_form\
-	never_been_here\
-	apply_production\
-\
+\f0\b0 /* nested procedures will be listed here */
+\f1\b \
 \
 	Identifier mapper definitions:\
 \
-	for                  literally: __xpl__for\
-	int                  literally: __xpl__int\
-	auto                 literally: __xpl__auto\
-	char                 literally: __xpl__char\
-	enum                 literally: __xpl__enum\
-	long                 literally: __xpl__long\
-	void                 literally: __xpl__void\
-	main                 literally: __xpl__main\
-	exit                 literally: __xpl__exit\
-	time                 literally: __xpl__time\
-	date                 literally: __xpl__date\
-	break                literally: __xpl__break\
-	const                literally: __xpl__const\
-	float                literally: __xpl__float\
-	short                literally: __xpl__short\
-	union                literally: __xpl__union\
-	abort                literally: __xpl__abort\
-	index                literally: __xpl__index\
-	errno                literally: __xpl__errno\
-	double               literally: __xpl__double\
-	extern               literally: __xpl__extern\
-	signed               literally: __xpl__signed\
-	sizeof               literally: __xpl__sizeof\
-	static               literally: __xpl__static\
-	struct               literally: __xpl__struct\
-	switch               literally: __xpl__switch\
-	typeof               literally: __xpl__typeof\
-	size_t               literally: __xpl__size_t\
-	default              literally: __xpl__default\
-	continue             literally: __xpl__continue\
-	register             literally: __xpl__register\
-	unsigned             literally: __xpl__unsigned\
-	volatile             literally: __xpl__volatile
+	for                  literally: __xpl_for\
+	int                  literally: __xpl_int\
+	auto                 literally: __xpl_auto\
+	char                 literally: __xpl_char\
+	enum                 literally: __xpl_enum\
+	long                 literally: __xpl_long\
+	void                 literally: __xpl_void\
+	main                 literally: __xpl_main\
+	exit                 literally: __xpl_exit\
+	break                literally: __xpl_break\
+	const                literally: __xpl_const\
+	float                literally: __xpl_float\
+	short                literally: __xpl_short\
+	union                literally: __xpl_union\
+	_Bool                literally: __xpl__Bool\
+	index                literally: __xpl_index\
+	abort                literally: __xpl_abort\
+	double               literally: __xpl_double\
+	extern               literally: __xpl_extern\
+	signed               literally: __xpl_signed\
+	sizeof               literally: __xpl_sizeof\
+	static               literally: __xpl_static\
+	struct               literally: __xpl_struct\
+	switch               literally: __xpl_switch\
+	inline               literally: __xpl_inline\
+	size_t               literally: __xpl_size_t\
+	typeof               literally: __xpl_typeof\
+	default              literally: __xpl_default\
+	typedef              literally: __xpl_typedef\
+	_Atomic              literally: __xpl__Atomic\
+	continue             literally: __xpl_continue\
+	register             literally: __xpl_register\
+	unsigned             literally: __xpl_unsigned\
+	volatile             literally: __xpl_volatile\
+	_Complex             literally: __xpl__Complex\
+	restrict             literally: __xpl_restrict\
+	_Alignas             literally: __xpl__Alignas\
+	_Alignof             literally: __xpl__Alignof\
+	_Generic             literally: __xpl__Generic\
+	_Noreturn            literally: __xpl__Noreturn\
+	_Imaginary           literally: __xpl__Imaginary\
+	_Thread_local        literally: __xpl__Thread_local\
+	_Static_assert       literally: __xpl__Static_assert
 \f0\b0 \
 \
-	TRANSPARENT PROCEDURES are not effected by this problem because the desired result is to use the C library function.\
+	TRANSPARENT PROCEDURES are not affected by this problem because the desired result is to use the C library function.\
 \
 \
 Appendix D --- Format strings ---\
