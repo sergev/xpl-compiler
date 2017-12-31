@@ -1,29 +1,34 @@
 #
 #	XPL grammar analyzer makefile for GNU/Linux make.
 #
-#CFLAGS= -Wall
-#CFLAGS= -g
-XPL=../xpl
-LIBXPL=../libxpl.a
+XPLDIR=..
+CFLAGS= -I$(XPLDIR)
+XPL=$(XPLDIR)/xpl
+LDLIBS=$(XPLDIR)/libxpl.a
+
+TARGETS=analyzer xa skeleton
 
 %.c:	%.xpl
-	$(XPL) -I $< -o $@
+	$(XPL) $< -o $@
 
-analyzer:	analyzer.xpl
-	$(XPL) analyzer.xpl
-	$(CC) $(CFLAGS) -I.. analyzer.c $(LIBXPL) -o analyzer
+all:	$(TARGETS)
 
-xa:	xa256.xpl
-	$(XPL) -G xa256.xpl
-	$(CC) $(CFLAGS) -I.. xa256.c $(LIBXPL) -o xa
+analyzer:	analyzer.o
+analyzer.o:	analyzer.c
+analyzer.c:	analyzer.xpl
 
-skeleton:	skeleton.xpl
-	$(XPL) -I skeleton.xpl
-	$(CC) $(CFLAGS) -I.. skeleton.c $(LIBXPL) -o skeleton
+xa:	xa.o
+xa.o:	xa.c
+xa.c:	xa256.xpl
+	$(XPL) xa256.xpl -o xa.c
+
+skeleton:	skeleton.o
+skeleton.o:	skeleton.c
+skeleton.c:	skeleton.xpl
 
 xpl.msp:	xa xpl.bnf
 	./xa xpl.bnf -o xpl.msp
 
 clean:
-	rm -f *.o *.xh *.c analyzer skeleton xa
+	rm -f *.o *.xh *.c $(TARGETS) xpl.msp
 

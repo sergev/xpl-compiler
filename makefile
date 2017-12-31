@@ -6,11 +6,11 @@
 #
 
 all:
-	make -C compiler
-	make -C tws
+	$(MAKE) $(MFLAGS) -C compiler
+	$(MAKE) $(MFLAGS) -C tws
 
 clean:
-	make -C compiler clean
-	make -C tws clean
+	$(MAKE) $(MFLAGS) -C compiler clean
+	$(MAKE) $(MFLAGS) -C tws clean
 	rm -f xpl xpl.h libxpl.a
 
