@@ -11,13 +11,13 @@
 #include "xpl.h"
 
 /*
-**	__xpl_hex(__xpl_string *outstr, XPL_LONG number)
+**	__xplrt_hex(__xpl_string *outstr, XPL_LONG number)
 **
 **	Convert the number to a hexadecimal character string.
 **	Return the new descriptor.
 */
 __xpl_string *
-__xpl_hex(__xpl_string *outstr, XPL_LONG number)
+__xplrt_hex(__xpl_string *outstr, XPL_LONG number)
 {
 	__xpl_string xpl_descriptor;
 	char numbuf[32];
@@ -40,13 +40,13 @@ __xpl_hex(__xpl_string *outstr, XPL_LONG number)
 }
 
 /*
-**	hex(number)
+**	__xpl_hex(number)
 **
-**	User level unterface to __xpl_hex().
+**	User level unterface to __xplrt_hex().
 **	The receiving sequence is responsible for moving the string descriptor.
 */
 __xpl_string *
-hex(XPL_LONG number)
+__xpl_hex(XPL_LONG number)
 {
-	return __xpl_hex(__xpl_pool(), number);
+	return __xplrt_hex(__xpl_pool(), number);
 }

@@ -25,24 +25,6 @@ __xpl_build_descriptor(__xpl_string *outstr, int length, void *addr)
 }
 
 /*
-**	build_descriptor(int length, void *addr)
-**
-**	User level interface to __xpl_build_descriptor.
-**	Create a string descriptor using length and address.
-**	return the descriptor
-*/
-__xpl_string *
-build_descriptor(int length, void *addr)
-{
-	__xpl_string *outstr;
-
-	outstr = __xpl_pool();
-	outstr->_Length = length;
-	outstr->_Address = addr;
-	return outstr;
-}
-
-/*
 **	__xpl_get_charfixed(__xpl_string *outstr, int maxlen, void *addr)
 **
 **	Create a string descriptor using maxlen and addr.

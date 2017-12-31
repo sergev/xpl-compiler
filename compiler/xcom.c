@@ -377,9 +377,14 @@ static STRING mapper_list[] = {
 	STR("default"), STR("double"), STR("enum"), STR("extern"),
 	STR("float"), STR("for"), STR("int"), STR("long"), STR("register"),
 	STR("short"), STR("signed"), STR("sizeof"), STR("static"),
-	STR("struct"), STR("switch"), STR("typeof"), STR("union"),
-	STR("unsigned"), STR("void"), STR("volatile"), STR("size_t"),
-	STR("main"), STR("exit"), STR("abort"), STR("time"), STR("date"),
+	STR("struct"), STR("switch"), STR("typedef"), STR("union"),
+	STR("unsigned"), STR("void"), STR("volatile"),
+	/* C99 reserved words */
+	STR("_Bool"), STR("_Complex"), STR("_Imaginary"),
+	STR("inline"), STR("restrict"),
+	/* C11 reserved words */
+	STR("_Alignas"), STR("_Alignof"), STR("_Atomic"), STR("_Generic"),
+	STR("_Noreturn"), STR("_Static_assert"), STR("_Thread_local"),
 #if 0
 	/* Reserved words from <stdio.h> */
 	STR("rename"), STR("renameat"), STR("renamex_np"), STR("renameatx_np"),
@@ -410,7 +415,8 @@ static STRING mapper_list[] = {
 	STR("stdin"), STR("stdout"), STR("stderr"),
 	/* End <stdio.h> */
 #endif
-	STR("index"), STR("errno"),
+	STR("size_t"), STR("main"), STR("typeof"), STR("index"),
+	STR("exit"), STR("abort"),
 	{0, 0} /* Must be last */};
 
 #define MAPPER_LIMIT (cMAPPER_LIMIT-1)
@@ -499,6 +505,8 @@ static STRING while_tail = STR(") {");
 static STRING index_zero = STR("[0]");
 static STRING comma_zero = STR(", 0");
 static STRING x1_equal_x1 = STR(" = ");
+static STRING xpl_prefix = STR("__xpl_");
+static STRING xpl_runtime = STR("__xpl_");
 static STRING dot_length = STR("._Length");
 static STRING point_length = STR("->_Length");
 static STRING null_terminator = STR("\0");
@@ -627,7 +635,8 @@ compiler.
 #define UNDEF_ARG	23
 #define CONSTANT	24
 #define STRINGCON	25
-#define LAST_TYPE	26
+#define ADDRESS_TYPE	26
+#define LAST_TYPE	27
 
 static STRING typename[LAST_TYPE] = {
 	STR_NULL,
@@ -658,6 +667,7 @@ static STRING typename[LAST_TYPE] = {
 	STR("<undefined arg>"),
 	STR("constant "),
 	STR("25"),
+	STR("26"),
 };
 
 static STRING dcltypes[LAST_TYPE] = {
@@ -711,8 +721,14 @@ struct builtin_s {
 	int type;	/* Symbol type */
 	int location;	/* Address displacement */
 	int dimension;	/* Number of elements in the array */
+	int flags;	/* Identifier mapping options */
 	STRING name;	/* XPL string for name */
 };
+
+/* Builtin function flag values */
+#define BIF_MAP		1
+#define BIF_X1		2
+#define BIF_NOP		4
 
 enum specials {BIN_SCALAR, BIN_ARRAY, BIN_STRING, BIN_CHAR_POINTER, BIN_CALL,
 	BIN_MOPAR, BIN_ACCUMULATOR, BIN_LENGTH, BIN_SUBSTR, BIN_BYTE, BIN_SHL, BIN_SHR,
@@ -722,70 +738,65 @@ enum specials {BIN_SCALAR, BIN_ARRAY, BIN_STRING, BIN_CHAR_POINTER, BIN_CALL,
 	BIN_CONSTANT, BIN_NOP};
 
 struct builtin_s builtin[] = {
-	{FIXEDTYPE, 0, 0, STR("time_of_generation")},
-	{FIXEDTYPE, 0, 0, STR("date_of_generation")},
-	{FIXEDTYPE, 0, 0, STR("ndescript")},
-	{CHRTYPE, 0, 1, STR("descriptor")},
-	{CHRTYPE, 32, 32, STR("argv")},
-	{FIXEDTYPE, 0, 0, STR("argc")},
-	{PROC_BIT32, 0, 0, STR("time")},
-	{PROC_BIT32, 0, 0, STR("date")},
-	{PROC_VOID, 0, 0, STR("compactify")},
-	{PROC_VOID, 0, 0, STR("exit")},
-	{FIXEDTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow exit()  */
-	{PROC_VOID, 0, 0, STR("abort")},
-	{FIXEDTYPE, 0, 0, STR("xerrno")},
-	{PROC_BIT32, 0, 0, STR("xfopen")},
-	{CHRTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xfopen()  */
-	{CHRTYPE, 0, 0, STR(" ")},	/* Parameter 2.  Must follow xfopen()  */
-	{PROC_BIT32, 0, 0, STR("xfclose")},
-	{FIXEDTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xfclose()  */
-	{PROC_BIT32, 0, 0, STR("xrewind")},
-	{FIXEDTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xrewind()  */
-	{PROC_BIT32, 0, 0, STR("xmkstemp")},
-	{CHRTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xmkstemp()  */
-	{CHRTYPE, 0, 0, STR(" ")},	/* Parameter 2.  Must follow xmkstemp()  */
-	{PROC_BIT32, 0, 0, STR("xunlink")},
-	{CHRTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xunlink()  */
-	{CHAR_PROC_TYPE, 0, 0, STR("unique")},
-	{CHRTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow unique()  */
-	{CHAR_PROC_TYPE, 0, 0, STR("expand_tabs")},
-	{CHRTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow expand_tabs()  */
-	{FIXEDTYPE, 0, 0, STR(" ")},	/* Parameter 2.  Must follow expand_tabs()  */
-	{CHAR_PROC_TYPE, 0, 0, STR("hex")},
-	{FIXEDTYPE, 0, 0, STR(" ")},	/* Parameter 1.  Must follow hex()  */
-	{CONSTANT, __XPL_EOF, 0, STR("XPL_EOF")},
-	{SPECIAL, BIN_LENGTH, 0, STR("length")},
-	{SPECIAL, BIN_SUBSTR, 0, STR("substr")},
-	{SPECIAL, BIN_BYTE, 0, STR("byte")},
-	{SPECIAL, BIN_SHL, 0, STR("shl")},
-	{SPECIAL, BIN_SHR, 0, STR("shr")},
-	{SPECIAL, BIN_INPUT, 0, STR("input")},
-	{SPECIAL, BIN_OUTPUT, 0, STR("output")},
-	{SPECIAL, BIN_FILE, 0, STR("file")},
-	{SPECIAL, BIN_INLINE, 0, STR("inline")},
-	{SPECIAL, BIN_ADDR, 0, STR("addr")},
-	{SPECIAL, BIN_SADDR, 0, STR("saddr")},
-	{SPECIAL, BIN_COREBYTE, 0, STR("corebyte")},
-	{SPECIAL, BIN_COREHALFWORD, 0, STR("corehalfword")},
-	{SPECIAL, BIN_COREWORD, 0, STR("coreword")},
-	{SPECIAL, BIN_CORELONGWORD, 0, STR("corelongword")},
-	{SPECIAL, BIN_BUILD_DESCRIPTOR, 0, STR("build_descriptor")},
-	{SPECIAL, BIN_XFPRINTF, 0, STR("xfprintf")},
-	{SPECIAL, BIN_XPRINTF, 0, STR("xprintf")},
-	{SPECIAL, BIN_XSPRINTF, 0, STR("xsprintf")},
-	{SPECIAL, BIN_NOP, 0, STR("trace")},
-	{SPECIAL, BIN_NOP, 0, STR("untrace")},
-	{0, 0, 0, {0, 0}}
-};
-
-/* These variables are either 32 to 64 bit addresses */
-struct builtin_s builtin_pointers[] = {
-	{FIXEDTYPE, 0, 0, STR("file_record_size")},
-	{FIXEDTYPE, 0, 0, STR("freebase")},
-	{FIXEDTYPE, 0, 0, STR("freelimit")},
-	{FIXEDTYPE, 0, 0, STR("freepoint")},
-	{0, 0, 0, {0, 0}}
+	{FIXEDTYPE, 0, 0, 0, STR("time_of_generation")},
+	{FIXEDTYPE, 0, 0, 0, STR("date_of_generation")},
+	{FIXEDTYPE, 0, 0, 0, STR("ndescript")},
+	{CHRTYPE, 0, 1, 0, STR("descriptor")},
+	{ADDRESS_TYPE, 0, 0, 0, STR("file_record_size")},
+	{ADDRESS_TYPE, 0, 0, 0, STR("freebase")},
+	{ADDRESS_TYPE, 0, 0, 0, STR("freelimit")},
+	{ADDRESS_TYPE, 0, 0, 0, STR("freepoint")},
+	{CHRTYPE, 32, 32, 0, STR("argv")},
+	{FIXEDTYPE, 0, 0, 0, STR("argc")},
+	{PROC_BIT32, 0, 0, BIF_MAP, STR("time")},
+	{PROC_BIT32, 0, 0, BIF_MAP, STR("date")},
+	{PROC_VOID, 0, 0, 0, STR("compactify")},
+	{PROC_VOID, 0, 0, BIF_NOP, STR("exit")},
+	{FIXEDTYPE, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow exit()  */
+	{PROC_VOID, 0, 0, BIF_NOP, STR("abort")},
+	{FIXEDTYPE, 0, 0, BIF_MAP, STR("xerrno")},
+	{PROC_BIT32, 0, 0, BIF_MAP, STR("xfopen")},
+	{CHRTYPE, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xfopen()  */
+	{CHRTYPE, 0, 0, 0, STR(" ")},	/* Parameter 2.  Must follow xfopen()  */
+	{PROC_BIT32, 0, 0, BIF_MAP, STR("xfclose")},
+	{FIXEDTYPE, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xfclose()  */
+	{PROC_BIT32, 0, 0, BIF_MAP, STR("xrewind")},
+	{FIXEDTYPE, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xrewind()  */
+	{PROC_BIT32, 0, 0, BIF_MAP, STR("xmkstemp")},
+	{CHRTYPE, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xmkstemp()  */
+	{CHRTYPE, 0, 0, 0, STR(" ")},	/* Parameter 2.  Must follow xmkstemp()  */
+	{PROC_BIT32, 0, 0, BIF_MAP, STR("xunlink")},
+	{CHRTYPE, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xunlink()  */
+	{CHAR_PROC_TYPE, 0, 0, BIF_MAP, STR("unique")},
+	{CHRTYPE, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow unique()  */
+	{CHAR_PROC_TYPE, 0, 0, BIF_MAP, STR("expand_tabs")},
+	{CHRTYPE, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow expand_tabs()  */
+	{FIXEDTYPE, 0, 0, 0, STR(" ")},	/* Parameter 2.  Must follow expand_tabs()  */
+	{CHAR_PROC_TYPE, 0, 0, BIF_MAP, STR("hex")},
+	{DOUBLEWORD, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow hex()  */
+	{CONSTANT, __XPL_EOF, 0, BIF_X1, STR("XPL_EOF")},
+	{SPECIAL, BIN_LENGTH, 0, BIF_X1, STR("length")},
+	{SPECIAL, BIN_SUBSTR, 0, BIF_X1, STR("substr")},
+	{SPECIAL, BIN_BYTE, 0, BIF_X1, STR("byte")},
+	{SPECIAL, BIN_SHL, 0, BIF_X1, STR("shl")},
+	{SPECIAL, BIN_SHR, 0, BIF_X1, STR("shr")},
+	{SPECIAL, BIN_INPUT, 0, BIF_X1, STR("input")},
+	{SPECIAL, BIN_OUTPUT, 0, BIF_X1, STR("output")},
+	{SPECIAL, BIN_FILE, 0, BIF_X1, STR("file")},
+	{SPECIAL, BIN_INLINE, 0, BIF_X1, STR("inline")},
+	{SPECIAL, BIN_ADDR, 0, BIF_X1, STR("addr")},
+	{SPECIAL, BIN_SADDR, 0, BIF_X1, STR("saddr")},
+	{SPECIAL, BIN_COREBYTE, 0, 0, STR("corebyte")},
+	{SPECIAL, BIN_COREHALFWORD, 0, 0, STR("corehalfword")},
+	{SPECIAL, BIN_COREWORD, 0, 0, STR("coreword")},
+	{SPECIAL, BIN_CORELONGWORD, 0, 0, STR("corelongword")},
+	{SPECIAL, BIN_BUILD_DESCRIPTOR, 0, BIF_X1, STR("build_descriptor")},
+	{SPECIAL, BIN_XFPRINTF, 0, BIF_X1, STR("xfprintf")},
+	{SPECIAL, BIN_XPRINTF, 0, BIF_X1, STR("xprintf")},
+	{SPECIAL, BIN_XSPRINTF, 0, BIF_X1, STR("xsprintf")},
+	{SPECIAL, BIN_NOP, 0, BIF_X1, STR("trace")},
+	{SPECIAL, BIN_NOP, 0, BIF_X1, STR("untrace")},
+	{0, 0, 0, 0, {0, 0}}
 };
 
 /*  The compiler stacks declared below are used to drive the syntactic
@@ -1077,7 +1088,7 @@ get_card(void)
 			buffer = got_eof;
 			control['L'] = FALSE;
 		} else {
-			__xpl_expand_tabs(&buffer, &buffer, 8);	/* Expand the tabs */
+			__xplrt_expand_tabs(&buffer, &buffer, 8);  /* Expand the tabs */
 			card_count = card_count + 1;	/* Used to print on listing */
 		}
 		if (margin_chop > 0) {
@@ -1358,7 +1369,6 @@ scan(void)
 {
 	int s1, s2, i;
 	STRING *scan_string;
-//	static STRING lstrgm = STR("string too long");
 	static STRING ill_char = STR("Illegal character: ");
 	static STRING macro_overflow = STR("Macro expansion too long");
 	static STRING too_many_expansions = STR("Too many expansions for ");
@@ -2265,8 +2275,8 @@ emit_headers(void)
 {
 	fprintf(out_file, "#include \"xpl.h\"\n");
 	fprintf(out_file, "#include \"%s\"\n", string_filename);
-	fprintf(out_file, "static int date_of_generation = {%d};\n", __xpl__date());
-	fprintf(out_file, "static int time_of_generation = {%d};\n", __xpl__time());
+	fprintf(out_file, "static int date_of_generation = {%d};\n", __xpl_date());
+	fprintf(out_file, "static int time_of_generation = {%d};\n", __xpl_time());
 	fprintf(out_file, "static unsigned char *corebyte;\n");
 	fprintf(out_file, "static short *corehalfword;\n");
 	fprintf(out_file, "static int *coreword, argc;\n");
@@ -2435,12 +2445,11 @@ void
 enter_keywords(void)
 {
 	STRING *enter_keywords_text;
-	static STRING xpl = STR("__xpl__");
 	int i;
 
 	enter_keywords_text = get_temp_descriptor();
 	for (i = 0; mapper_list[i]._Length; i++) {
-		CAT(enter_keywords_text, &xpl, &mapper_list[i]);
+		CAT(enter_keywords_text, &xpl_prefix, &mapper_list[i]);
 		enter_mapper(&mapper_list[i], enter_keywords_text);
 	}
 	release_temp_descriptor(1);
@@ -2531,6 +2540,8 @@ int
 enter(STRING *name, int type, int location, int line)
 {
 	static STRING duplicate = STR("duplicate declaration for: ");
+	static STRING on_line = STR(" on line ");
+	STRING *enter_text;
 	int i, k, mangle;
 
 	idx = hasher(name);
@@ -2549,7 +2560,10 @@ enter(STRING *name, int type, int location, int line)
 				syt_type[i] = type;
 			} else
 			if (procmark + parct < i) {
-				error(CAT(get_temp_descriptor(), &duplicate, name),
+				enter_text = get_temp_descriptor();
+				CAT(enter_text, &duplicate, name);
+				CAT(enter_text, enter_text, &on_line);
+				error(CAT_INT(enter_text, enter_text, declared_on_line[i]),
 					__LINE__, 0);
 				release_temp_descriptor(1);
 			}
@@ -2617,6 +2631,11 @@ enter(STRING *name, int type, int location, int line)
 		while (i >= 0) {
 			idcompares = idcompares + 1;
 			if (COMPARE(name, &syt_name(i)) == 0) {
+				if (syt_mapped(i)._Length > 0 && i < initmark &&
+					COMPARE(name, &syt_mapped(i)) != 0) {
+					/* The builtin function is mapped */
+					break;
+				}
 				/* Change the mapping to a unique identifier */
 				mangle = TRUE;
 				break;
@@ -2773,8 +2792,8 @@ upper_case_macro(char *name)
 	upper_case_macro_text = get_temp_descriptor();
 	upper_case_macro_string = get_temp_descriptor();
 	enter_macro(MOVE_TO_TOP(upper_case_macro_text,
-		c2x_string(upper_case_macro_text, data)),
-		c2x_string(upper_case_macro_string, name));
+		__xpl_c2x_string(upper_case_macro_text, data)),
+		__xpl_c2x_string(upper_case_macro_string, name));
 	release_temp_descriptor(2);
 }
 
@@ -2801,11 +2820,6 @@ ignore_case_macro(void)
 		}
 	}
 
-	for (i = 0; builtin_pointers[i].type; i++) {
-		if (BYTE(&builtin_pointers[i].name, 0) != ' ') {
-			upper_case_macro(builtin_pointers[i].name._Address);
-		}
-	}
 	for (i = 0; builtin[i].type; i++) {
 		if (BYTE(&builtin[i].name, 0) != ' ') {
 			upper_case_macro(builtin[i].name._Address);
@@ -4116,7 +4130,7 @@ initialize(void)
 	static STRING address = STR("address");
 	static STRING bit32 = STR("bit(32)");
 	static STRING bit64 = STR("bit(64)");
-	int i, j, type;
+	int i, j, k, addr_type;
 	char *s;
 
 	/* ndescript is bug compatable */
@@ -4130,7 +4144,7 @@ initialize(void)
 		static STRING mode = STR("r");
 		STRING string_descriptor;
 
-		i = xfopen(c2x_string(&string_descriptor, input_filename), &mode);
+		i = __xpl_xfopen(__xpl_c2x_string(&string_descriptor, input_filename), &mode);
 		if (i < 0) {
 			fprintf(stderr, "File open error: %s\n", input_filename);
 			return 1;
@@ -4141,7 +4155,7 @@ initialize(void)
 	if (!out_file) {
 		fprintf(stderr, "File open error: %s\n", output_filename);
 		if (input_unit > 0) {
-			xfclose(input_unit);
+			__xpl_xfclose(input_unit);
 		}
 		return 1;
 	}
@@ -4149,7 +4163,7 @@ initialize(void)
 	if (!string_file) {
 		fprintf(stderr, "File open error: %s\n", string_filename);
 		if (input_unit > 0) {
-			xfclose(input_unit);
+			__xpl_xfclose(input_unit);
 		}
 		fclose(out_file);
 		return 1;
@@ -4259,27 +4273,35 @@ initialize(void)
 	if (sizeof(void *) <= 4 || (control['G'] & 1) == 1) {
 		/* declare address literally 'bit(32)'; */
 		address_symbol = enter_macro(&address, &bit32);
-		type = FIXEDTYPE;
+		addr_type = FIXEDTYPE;
 	} else {
 		/* declare address literally 'bit(64)'; */
 		address_symbol = enter_macro(&address, &bit64);
-		type = DOUBLEWORD;
+		addr_type = DOUBLEWORD;
 	}
 	line_symbol = enter_macro(&line_name, &null);
-
-	/* Add the pointer variables */
-	for (i = 0; builtin_pointers[i].type; i++) {
-		j = enter(&builtin_pointers[i].name, type, builtin_pointers[i].location, 0);
-		syt_dim[j] = builtin_pointers[i].dimension;
-	}
 
 	/* Add the built-in functions to the symbol table */
 	for (i = 0; builtin[i].type; i++) {
 		if (BYTE(&builtin[i].name, 0) == ' ') {
-			enter_parameter(builtin[i].type, builtin[i].location, 0);
+			k = builtin[i].type;
+			if (k == DOUBLEWORD && sizeof_long <= 4) {
+				k = FIXEDTYPE;
+			}
+			enter_parameter(k, builtin[i].location, 0);
 		} else {
-			j = enter(&builtin[i].name, builtin[i].type, builtin[i].location, 0);
+			k = builtin[i].type;
+			if (k == ADDRESS_TYPE) {
+				k = addr_type;
+			}
+			j = enter(&builtin[i].name, k, builtin[i].location, 0);
 			syt_dim[j] = builtin[i].dimension;
+			if (builtin[i].flags & BIF_MAP) {
+				CAT(&syt_mapped(j), &xpl_runtime, &builtin[i].name);
+			} else
+			if (builtin[i].flags & BIF_X1) {
+				syt_mapped(j) = x1;
+			}
 		}
 	}
 	/* Mark the end of the predefined symbols */
@@ -4456,7 +4478,8 @@ dumpit(void)
 	static STRING mapper_info = STR("Identifier mapper definitions:");
 	static STRING literal = STR(" literally: ");
 	STRING *dumpit_string;
-	int i;
+	short xp[sizeof(builtin) / sizeof(builtin[0])];
+	int i, j, k, m;
 
 	procmark = initmark;
 	symboldump();
@@ -4465,6 +4488,30 @@ dumpit(void)
 	ndecsy = procmark - 1;
 	procmark = 0;
 	symboldump();
+
+	printf("Identifiers that may not be used as external procedures:\n");
+	blank_line;
+	for (i = k = 0; builtin[i].type; i++) {
+		if (BYTE(&builtin[i].name, 0) != ' ') {
+			if (builtin[i].flags == 0) {
+				xp[k++] = i;
+			}
+		}
+	}
+	for (i = 0; i < k; i++) {
+		for (j = i + 1; j < k; j++) {
+			if (strcmp(builtin[xp[i]].name._Address,
+					builtin[xp[j]].name._Address) > 0) {
+				m = xp[i];
+				xp[i] = xp[j];
+				xp[j] = m;
+			}
+		}
+	}
+	for (i = 0; i < k; i++) {
+		OUTPUT(0, &builtin[xp[i]].name);
+	}
+	double_space;
 
 	if (top_global >= 0) {
 		OUTPUT(0, &global_info);
@@ -4529,7 +4576,7 @@ stack_dump(void)
 		}
 		CAT(stack_dump_line, stack_dump_line, &x1);
 		CAT(stack_dump_line, stack_dump_line,
-			c2x_string(stack_dump_string, v[parse_stack[i]]));
+			__xpl_c2x_string(stack_dump_string, v[parse_stack[i]]));
 	}
 	OUTPUT(0, stack_dump_line);
 	release_temp_descriptor(2);
@@ -5955,21 +6002,21 @@ synthesize(int production_number)
 			break;
 		case BIN_XPRINTF:
 			{
-				static STRING bin_xprintf = STR("xprintf(0, 0, ");
+				static STRING bin_xprintf = STR("__xpl_xprintf(0, 0, ");
 
 				ps_text(mp) = bin_xprintf;
 			}
 			break;
 		case BIN_XFPRINTF:
 			{
-				static STRING bin_xfprintf = STR("xprintf(1, (void *)(");
+				static STRING bin_xfprintf = STR("__xpl_xprintf(1, (void *)(");
 
 				ps_text(mp) = bin_xfprintf;
 			}
 			break;
 		case BIN_XSPRINTF:
 			{
-				static STRING bin_xsprintf = STR("xprintf(");
+				static STRING bin_xsprintf = STR("__xpl_xprintf(");
 
 				ps_text(mp) = bin_xsprintf;
 			}
@@ -6177,12 +6224,12 @@ dump_production(int left_part)
 
 	dump_production_string = get_temp_descriptor();
 	dump_production_text = get_temp_descriptor();
-	CAT(dump_production_string, c2x_string(dump_production_text, v[left_part]),
+	CAT(dump_production_string, __xpl_c2x_string(dump_production_text, v[left_part]),
 		&replace);
 	for (i = mp; i <= sp; i++) {
 		CAT(dump_production_string, dump_production_string, &x1);
 		CAT(dump_production_string, dump_production_string,
-			c2x_string(dump_production_text, v[parse_stack[i]]));
+			__xpl_c2x_string(dump_production_text, v[parse_stack[i]]));
 	}
 	OUTPUT(0, dump_production_string);
 	release_temp_descriptor(2);
@@ -6232,10 +6279,10 @@ stacking(void)
 			stacking_string = get_temp_descriptor();
 			stacking_text = get_temp_descriptor();
 			CAT(stacking_string, &ill_symbol,
-				c2x_string(stacking_text, v[parse_stack[sp]]));
+				__xpl_c2x_string(stacking_text, v[parse_stack[sp]]));
 			CAT(stacking_string, stacking_string, &x1);
 			CAT(stacking_string, stacking_string,
-				c2x_string(stacking_text, v[token]));
+				__xpl_c2x_string(stacking_text, v[token]));
 			error(stacking_string, __LINE__, 1);
 			release_temp_descriptor(2);
 			stack_dump();
@@ -6547,7 +6594,7 @@ main(int argv, char **argc)
 	fclose(out_file);
 	fclose(string_file);
 	if (input_unit > 0) {
-		xfclose(input_unit);
+		__xpl_xfclose(input_unit);
 	}
 	return (severe_errors > 0);
 }

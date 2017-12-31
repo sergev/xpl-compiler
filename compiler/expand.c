@@ -10,14 +10,14 @@
 #include "xpl.h"
 
 /*
-**	__xpl_expand(__xpl_string *outstr, __xpl_string *str, int tabstop)
+**	__xplrt_expand(__xpl_string *outstr, __xpl_string *str, int tabstop)
 **
 **	Replace tabs with blanks.
 **	Returns the new string.
 **	If the string does not fit then the input string is returned.
 */
 __xpl_string *
-__xpl_expand_tabs(__xpl_string *outstr, __xpl_string *str, int tabstop)
+__xplrt_expand_tabs(__xpl_string *outstr, __xpl_string *str, int tabstop)
 {
 	__xpl_string s;
 	long i, sz;
@@ -66,13 +66,13 @@ __xpl_expand_tabs(__xpl_string *outstr, __xpl_string *str, int tabstop)
 }
 
 /*
-**	expand_tabs(string, tabstop)
+**	__xpl_expand_tabs(string, tabstop)
 **
-**	User level interface to __xpl_expand_tabs()
+**	User level interface to __xplrt_expand_tabs()
 **	The receiving sequence is responsible for moving the string descriptor.
 */
 __xpl_string *
-expand_tabs(__xpl_string *str, int tabstop)
+__xpl_expand_tabs(__xpl_string *str, int tabstop)
 {
-	return __xpl_expand_tabs(__xpl_pool(), str, tabstop);
+	return __xplrt_expand_tabs(__xpl_pool(), str, tabstop);
 }

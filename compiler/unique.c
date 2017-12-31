@@ -11,14 +11,14 @@
 #include "xpl.h"
 
 /*
-**	__xpl_unique(__xpl_string *outstr, __xpl_string *str)
+**	__xplrt_unique(__xpl_string *outstr, __xpl_string *str)
 **
 **	Move a string to the top of the string space.
 **	If the length is non-zero the string is always moved.
 **	Return a descriptor pointing to the new string.
 */
 __xpl_string *
-__xpl_unique(__xpl_string *outstr, __xpl_string *str)
+__xplrt_unique(__xpl_string *outstr, __xpl_string *str)
 {
 	if (str->_Length == 0) {
 		outstr->_Length = 0;
@@ -36,13 +36,13 @@ __xpl_unique(__xpl_string *outstr, __xpl_string *str)
 }
 
 /*
-**	unique(string)
+**	__xpl_unique(string)
 **
-**	User level interface to __xpl_unique().
+**	User level interface to __xplrt_unique().
 **	The receiving sequence is responsible for moving the string descriptor.
 */
 __xpl_string *
-unique(__xpl_string *str)
+__xpl_unique(__xpl_string *str)
 {
-	return __xpl_unique(__xpl_pool(), str);
+	return __xplrt_unique(__xpl_pool(), str);
 }

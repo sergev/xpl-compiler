@@ -55,6 +55,7 @@ extern int __xpl_colections[3];	/* Count the number of collections */
 
 int __xpl_runtime_init(int size);
 void __xpl_init_strings(void);
+void __xpl_io_init(void);
 
 void compactify(void);
 int __xpl_compare(__xpl_string *left, __xpl_string *right);
@@ -81,16 +82,16 @@ __xpl_FILE *__xpl_FILE_out[__XPL_FILE_MAX];
 #endif
 extern char __xpl_FILE_eol[__XPL_FILE_MAX];
 extern int __xpl_FILE_flags[__XPL_FILE_MAX];
-extern int xerrno;	/* Set to the Unix value of errno when calling the runtime */
+extern int __xpl_xerrno;	/* Set to the Unix value of errno if error in the runtime */
 
-int xfopen(__xpl_string *filename, __xpl_string *mode);
-int xfclose(int unit);
+int __xpl_xfopen(__xpl_string *filename, __xpl_string *mode);
+int __xpl_xfclose(int unit);
 __xpl_string *__xpl_output(int num, __xpl_string *str);
 __xpl_string *__xpl_input(__xpl_string *outstr, int num);
-int xprintf(int, void *ref, __xpl_string *xfmt, ...);
-int xunlink(__xpl_string *file);
-int xrewind(int unit);
-int xmkstemp(__xpl_string *file, __xpl_string *mode);
+int __xpl_xprintf(int, void *ref, __xpl_string *xfmt, ...);
+int __xpl_xunlink(__xpl_string *file);
+int __xpl_xrewind(int unit);
+int __xpl_xmkstemp(__xpl_string *file, __xpl_string *mode);
 
 /* XPL specific xerrno values */
 #define __XPL_EOF -1
@@ -99,28 +100,29 @@ int xmkstemp(__xpl_string *file, __xpl_string *mode);
 void __xpl_info(void);
 
 /* User level functions defined in the runtime */
-__xpl_string *c2x_string(__xpl_string *outstr, char *p);
-char *x2c_string(__xpl_string *str);
+__xpl_string *__xpl_c2x_string(__xpl_string *outstr, char *p);
+char *__xpl_x2c_string(__xpl_string *str);
 char *__c_decimal(XPL_LONG number);
 
 /* Functions we wish to hide from the linker */
-int __xpl__date(void);
-int __xpl__time(void);
-void __xpl__exit(int status);
-void __xpl__abort(void);
+int __xpl_date(void);
+int __xpl_time(void);
+void __xpl_exit(int status);
+void __xpl_abort(void);
 
 /* Functions found in the XPL library */
-__xpl_string *expand_tabs(__xpl_string *str, int tabstop);
-__xpl_string *__xpl_expand_tabs(__xpl_string *outstr, __xpl_string *str, int tabstop);
+__xpl_string *__xplrt_expand_tabs(__xpl_string *outstr, __xpl_string *str, int tabstop);
+__xpl_string *__xpl_expand_tabs(__xpl_string *str, int tabstop);
 
-__xpl_string *unique(__xpl_string *str);
-__xpl_string *__xpl_unique(__xpl_string *outstr, __xpl_string *str);
+__xpl_string *__xplrt_unique(__xpl_string *outstr, __xpl_string *str);
+__xpl_string *__xpl_unique(__xpl_string *str);
 
 int __xpl_read_file(int num, int rec, void *buffer, unsigned long rec_size);
 int __xpl_write_file(int num, int rec, void *buffer, unsigned long rec_size);
 extern XPL_ADDRESS file_record_size;	/* Max record size for builtin function FILE() */
 
-__xpl_string *hex(XPL_LONG number);
+__xpl_string *__xplrt_hex(__xpl_string *outstr, XPL_LONG number);
+__xpl_string *__xpl_hex(XPL_LONG number);
 
 __xpl_string *__xpl_build_descriptor(__xpl_string *outstr, int length, void *addr);
 __xpl_string *__xpl_get_charfixed(__xpl_string *outstr, int length, void *addr);

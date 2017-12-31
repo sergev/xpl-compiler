@@ -20,7 +20,7 @@
 static __xpl_string x1 = {1, " "};
 static __xpl_string null_format = {6, "(null)"};
 
-//	%[flags][width][.precision][length]specifier
+/*	%[flags][width][.precision][length]specifier	*/
 #define FLAG_PLUS	0x0001
 #define FLAG_MINUS	0x0002
 #define FLAG_SPACE	0x0004
@@ -157,16 +157,16 @@ xp_convert_binary(XPL_UNSIGNED_LONG l, int t)
 }
 
 /*
-**	xprintf(function, reference, format, ...)
+**	__xpl_xprintf(function, reference, format, ...)
 **
-**	Implement xsprintf(), xfprintf, xprintf.
+**	Implement xsprintf, xfprintf, xprintf.
 **	These functions operate as close as possible to the C language
 **	equivalants but without floating point.
 **
 **	%[flags][width][.precision][length]specifier
 */
 int
-xprintf(int func, void *ref, __xpl_string *xfmt, ...)
+__xpl_xprintf(int func, void *ref, __xpl_string *xfmt, ...)
 {
 	va_list args;
 	int i, c, len, n, recover, sign;
@@ -181,7 +181,7 @@ xprintf(int func, void *ref, __xpl_string *xfmt, ...)
 	void *void_star;
 
 	va_start(args, xfmt);
-	xerrno = 0;
+	__xpl_xerrno = 0;
 	if (!xfmt) {
 		xfmt = &null_format;
 	}
@@ -193,7 +193,7 @@ xprintf(int func, void *ref, __xpl_string *xfmt, ...)
 	case 1:
 		i = (int) ((XPL_ADDRESS) ref);
 		if (i < 0 || i > __XPL_FILE_MAX) {
-			xerrno = EBADF;
+			__xpl_xerrno = EBADF;
 			return 0;
 		}
 		ref = (void *) __xpl_FILE_out[i];
@@ -205,13 +205,13 @@ xprintf(int func, void *ref, __xpl_string *xfmt, ...)
 		break;
 	case 3:
 		if (((__xpl_string *) ref)->_Length < 2) {
-			xerrno = EFAULT;
+			__xpl_xerrno = EFAULT;
 			return 0;
 		}
 		print = build_charfix;
 		break;
 	default:
-		xerrno = EINVAL;
+		__xpl_xerrno = EINVAL;
 		return 0;
 	}
 	xp_char_count = 0;

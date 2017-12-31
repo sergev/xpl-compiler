@@ -19,7 +19,7 @@ static __xpl_string null_terminator = {1, "\000"};
 static __xpl_string default_template = {7, "xXXXXXX"};
 
 /*
-**	xmkstemp(__xpl_string *template, __xpl_string *mode)
+**	__xpl_xmkstemp(__xpl_string *template, __xpl_string *mode)
 **
 **	The XPL interface to the mkstemp() call
 **	On sucessful completion:
@@ -34,7 +34,7 @@ static __xpl_string default_template = {7, "xXXXXXX"};
 **	The file is not deleted when the fd is closed.
 */
 int
-xmkstemp(__xpl_string *template, __xpl_string *mode)
+__xpl_xmkstemp(__xpl_string *template, __xpl_string *mode)
 {
 	int i, l, x, fd;
 	char m[8];
@@ -43,7 +43,7 @@ xmkstemp(__xpl_string *template, __xpl_string *mode)
 
 	if (!template) {
 		/* A template is required */
-		xerrno = EFAULT;
+		__xpl_xerrno = EFAULT;
 		return -1;
 	}
 	/* Validate the filename template */
@@ -55,7 +55,7 @@ xmkstemp(__xpl_string *template, __xpl_string *mode)
 	/* Find an empty slot for the I/O stream */
 	for (x = 0; ; x++) {
 		if (x >= __XPL_FILE_MAX) {
-			xerrno = ENFILE;
+			__xpl_xerrno = ENFILE;
 			return -1;
 		}
 		if (!__xpl_FILE_in[x] && !__xpl_FILE_out[x]) {
@@ -73,10 +73,10 @@ xmkstemp(__xpl_string *template, __xpl_string *mode)
 	}
 	m[i] = '\0';
 	__xpl_cat(&name, template, &null_terminator);
-	xerrno = 0;
+	__xpl_xerrno = 0;
 	fd = mkstemp(name._Address);
 	if (fd < 0) {
-		xerrno = errno;
+		__xpl_xerrno = errno;
 		return fd;
 	}
 	stream = fdopen(fd, m);
@@ -86,6 +86,6 @@ xmkstemp(__xpl_string *template, __xpl_string *mode)
 		template->_Address = name._Address;
 		return x;
 	}
-	xerrno = errno;
+	__xpl_xerrno = errno;
 	return -1;
 }

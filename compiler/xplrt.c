@@ -521,7 +521,7 @@ __xpl_info(void)
 }
 
 /*
-**	x2c_string(xpl_string)
+**	__xpl_x2c_string(xpl_string)
 **
 **	Convert an XPL string to a C string.
 **	The string is moved to the top of the free string area and concatenated
@@ -529,7 +529,7 @@ __xpl_info(void)
 **	Return the address of the new string.
 */
 char *
-x2c_string(__xpl_string *str)
+__xpl_x2c_string(__xpl_string *str)
 {
 	__xpl_string *s;
 
@@ -544,14 +544,14 @@ x2c_string(__xpl_string *str)
 }
 
 /*
-**	c2x_string(__xpl_string *outstr, c_string)
+**	__xpl_c2x_string(__xpl_string *outstr, c_string)
 **
 **	Convert a null terminated string to an XPL string.
 **	The string is not moved.
 **	Return the new string.
 */
 __xpl_string *
-c2x_string(__xpl_string *outstr, char *str)
+__xpl_c2x_string(__xpl_string *outstr, char *str)
 {
 	int len;
 
@@ -562,35 +562,35 @@ c2x_string(__xpl_string *outstr, char *str)
 }
 
 /*
-**	__xpl__exit()
+**	__xpl_exit()
 **
 **	Gracefully exit the program.  This is the Unix function call exit()
 **	The original XPL compiler implemented this as an abnormal exit.
 */
 void
-__xpl__exit(int status)
+__xpl_exit(int status)
 {
 	exit(status);
 }
 
 /*
-**	__xpl__abort()
+**	__xpl_abort()
 **
 **	Abort the program.  This is the Unix function call abort()
 */
 void
-__xpl__abort(void)
+__xpl_abort(void)
 {
 	abort();
 }
 
 /*
-**	__xpl__date()
+**	__xpl_date()
 **
 **	Return the date as (day_of_year + 1000 * (year - 1900))
 */
 int
-__xpl__date(void)
+__xpl_date(void)
 {
 	time_t unixtime;
 	struct tm *now;
@@ -602,12 +602,12 @@ __xpl__date(void)
 }
 
 /*
-**	__xpl__time()
+**	__xpl_time()
 **
 **	Return the time in centiseconds since midnight
 */
 int
-__xpl__time(void)
+__xpl_time(void)
 {
 	struct tm *now;
 	struct timeval tv;

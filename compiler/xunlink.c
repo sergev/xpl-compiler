@@ -15,27 +15,27 @@
 static __xpl_string null_terminator = {1, "\000"};
 
 /*
-**	xunlink(filename)
+**	__xpl_xunlink(filename)
 **
 **	Call the C library function unlink() to delete a file.
 **
-**	Return 0 if sucessful.  Return -1 and set xerrno if error.
+**	Return 0 if sucessful.  Return -1 and set __xpl_xerrno if error.
 */
 int
-xunlink(__xpl_string *filename)
+__xpl_xunlink(__xpl_string *filename)
 {
 	__xpl_string path;
 	int result;
 
 	if (filename->_Length == 0) {
-		xerrno = ENOENT;
+		__xpl_xerrno = ENOENT;
 		return -1;
 	}
-	xerrno = 0;
+	__xpl_xerrno = 0;
 	__xpl_cat(&path, filename, &null_terminator);
 	result = unlink(path._Address);
 	if (result < 0) {
-		xerrno = errno;
+		__xpl_xerrno = errno;
 	}
 	return result;
 }
