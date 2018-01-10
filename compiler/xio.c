@@ -38,6 +38,7 @@ __xpl_io_init(void)
 	__xpl_FILE_out[0] = stdout;
 	__xpl_FILE_out[1] = stderr;
 	__xpl_FILE_eol[0] = __xpl_FILE_eol[1] = 0;
+	__xpl_FILE_flags[0] = __xpl_FILE_flags[1] = 0;
 }
 
 /*

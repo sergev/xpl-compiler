@@ -363,7 +363,7 @@ int or_token, concatenate_token;
 
 int line_symbol;	/* Index into the symbol table for the __LINE__ macro */
 int address_symbol;	/* Index into the symbol table for the address macro */
-int right_conflict(int left);	/* Used to allow redefinition of the address macro */
+static int right_conflict(int left);	/* Used to allow redefinition of the address macro */
 
 /*
 ** Reserved words in the C language must be mapped when used in XPL.
@@ -440,7 +440,7 @@ int top_global;			/* Number of global identifiers minus one. */
 #define EXPANSION_COUNT_LIMIT 256
 int expansion_count;		/* Number of macro expansions */
 
-void ignore_case_macro(void);
+static void ignore_case_macro(void);
 
 static char hex_digits[] = {"0123456789abcdef"};
 
@@ -497,6 +497,7 @@ static STRING ampersand = STR("&");
 static STRING open_paren = STR("(");
 static STRING close_paren = STR(")");
 static STRING close_close = STR("))");
+static STRING close_open = STR(")(");
 static STRING open_brace = STR("{");
 static STRING close_brace = STR("}");
 static STRING left_bracket = STR("[");
@@ -694,6 +695,7 @@ static STRING dcltypes[LAST_TYPE] = {
 };
 
 int returned_type;      /* Current procedure type */
+int void_star;	/* The type of 'address' FIXEDTYPE or DOUBLEWORD */
 int no_body;	/* TRUE if not emitting the body of a procedure */
 int procmark;   /* Start of local variables in symbol table */
 int initmark;   /* Last of the builtin function symbol table entries */
@@ -738,8 +740,8 @@ enum specials {BIN_SCALAR, BIN_ARRAY, BIN_STRING, BIN_CHAR_POINTER, BIN_CALL,
 	BIN_CONSTANT, BIN_NOP};
 
 struct builtin_s builtin[] = {
-	{FIXEDTYPE, 0, 0, 0, STR("time_of_generation")},
-	{FIXEDTYPE, 0, 0, 0, STR("date_of_generation")},
+	{FIXEDTYPE, 0, 0, BIF_MAP, STR("time_of_generation")},
+	{FIXEDTYPE, 0, 0, BIF_MAP, STR("date_of_generation")},
 	{FIXEDTYPE, 0, 0, 0, STR("ndescript")},
 	{CHRTYPE, 0, 1, 0, STR("descriptor")},
 	{ADDRESS_TYPE, 0, 0, 0, STR("file_record_size")},
@@ -755,6 +757,11 @@ struct builtin_s builtin[] = {
 	{FIXEDTYPE, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow exit()  */
 	{PROC_VOID, 0, 0, BIF_NOP, STR("abort")},
 	{FIXEDTYPE, 0, 0, BIF_MAP, STR("xerrno")},
+	{PROC_BIT32, 0, 0, BIF_MAP, STR("xio_get_flags")},
+	{FIXEDTYPE, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xio_get_flags()  */
+	{PROC_BIT32, 0, 0, BIF_MAP, STR("xio_set_flags")},
+	{FIXEDTYPE, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xio_set_flags()  */
+	{FIXEDTYPE, 0, 0, 0, STR(" ")},	/* Parameter 2.  Must follow xio_set_flags()  */
 	{PROC_BIT32, 0, 0, BIF_MAP, STR("xfopen")},
 	{CHRTYPE, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xfopen()  */
 	{CHRTYPE, 0, 0, 0, STR(" ")},	/* Parameter 2.  Must follow xfopen()  */
@@ -765,6 +772,9 @@ struct builtin_s builtin[] = {
 	{PROC_BIT32, 0, 0, BIF_MAP, STR("xmkstemp")},
 	{CHRTYPE, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xmkstemp()  */
 	{CHRTYPE, 0, 0, 0, STR(" ")},	/* Parameter 2.  Must follow xmkstemp()  */
+	{PROC_BIT32, 0, 0, BIF_MAP, STR("xfdopen")},
+	{FIXEDTYPE, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xfdopen()  */
+	{CHRTYPE, 0, 0, 0, STR(" ")},	/* Parameter 2.  Must follow xfdopen()  */
 	{PROC_BIT32, 0, 0, BIF_MAP, STR("xunlink")},
 	{CHRTYPE, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow xunlink()  */
 	{CHAR_PROC_TYPE, 0, 0, BIF_MAP, STR("unique")},
@@ -853,7 +863,7 @@ int max_temp_descriptor;	/* Max number of descriptors used */
 **	Get a temporoary string descriptor to be used by the compiler.
 **	These descriptors are NOT for the generated code.
 */
-STRING *
+static STRING *
 get_temp_descriptor(void)
 {
 	temp_descriptor++;
@@ -872,7 +882,7 @@ get_temp_descriptor(void)
 **
 **	Return temporoary string descriptors to the stack.
 */
-void
+static void
 release_temp_descriptor(int n)
 {
 	temp_descriptor -= n;
@@ -887,7 +897,7 @@ release_temp_descriptor(int n)
 **
 **	Symbol table hash function
 */
-int
+static int
 hasher(STRING *id)
 {
 	/*  Generates a hash code for the identifier id  */
@@ -903,7 +913,7 @@ hasher(STRING *id)
 **	Lookup the identifer in the symbol table and return the symbol table index.
 **	Return -1 if not found.
 */
-int
+static int
 symbol_lookup(STRING *ident)
 {
 	int i;
@@ -924,7 +934,7 @@ symbol_lookup(STRING *ident)
 **
 **	Pad a string with blanks
 */
-STRING *
+static STRING *
 pad(STRING *string, int width)
 {
 #define pad_temp descriptor[73]
@@ -950,7 +960,7 @@ pad(STRING *string, int width)
 **
 **	Return a right justified number padded to width.
 */
-STRING *
+static STRING *
 i_format(int number, int width)
 {
 #define i_format_string descriptor[74]
@@ -972,7 +982,7 @@ i_format(int number, int width)
 **
 **	Return an integer as an unsigned decimal sring.
 */
-STRING *
+static STRING *
 us_decimal(STRING *outstr, XPL_LONG number)
 {
 	char numbuf[32];
@@ -998,7 +1008,7 @@ us_decimal(STRING *outstr, XPL_LONG number)
 **
 **	Return a hex number padded with zeros to width.
 */
-STRING *
+static STRING *
 xFormat(int number, int width)
 {
 #define xFormat_temp descriptor[75]
@@ -1023,7 +1033,7 @@ xFormat(int number, int width)
 **
 **	Prints and accounts for all error messages
 */
-void
+static void
 error(STRING *msg, int line, int severity)
 {
 	static STRING stars = STR("*** Error, ");
@@ -1071,7 +1081,7 @@ error(STRING *msg, int line, int severity)
 **
 **	Does all card reading and listing
 */
-void
+static void
 get_card(void)
 {
 	int i, line;
@@ -1152,7 +1162,7 @@ get_card(void)
 **	Move to the next character.
 **	Read a new card if at the end of line.
 */
-void
+static void
 cchar(void)
 {
 	/* Used for strings to avoid card boundary problems */
@@ -1166,7 +1176,7 @@ cchar(void)
 **
 **	Scan past the blanks.
 */
-void
+static void
 deblank(void)
 {
 	/* Used by bchar() */
@@ -1198,7 +1208,7 @@ deblank(void)
 **      at the end of each line and restarted on the next line.  The scanner
 **	could be used to paste them back together.
 */
-int
+static int
 bchar(void)
 {
 	static STRING illegal_bit_string = STR("Illegal bit string width: ");
@@ -1347,7 +1357,7 @@ bchar(void)
 **
 **	Force the string to the top of the free string area and add a byte to it.
 */
-void
+static void
 build_bcd(int c)
 {
 	if (bcd._Length > 0) {
@@ -1364,7 +1374,7 @@ build_bcd(int c)
 **
 **	Get the next token.
 */
-void
+static void
 scan(void)
 {
 	int s1, s2, i;
@@ -1647,7 +1657,7 @@ scan(void)
 **
 **	Return the next temporary variable name.
 */
-int
+static int
 next_temp(void)
 {
 	temp_variable_name++;
@@ -1662,7 +1672,7 @@ next_temp(void)
 **
 **	Return the temporary variable name as a string.
 */
-STRING *
+static STRING *
 temp_name(STRING *outstr, int id, int extra)
 {
 	char name[32];
@@ -1679,7 +1689,7 @@ temp_name(STRING *outstr, int id, int extra)
 **	Return TRUE if this name is in the Global Scope table.
 **	Returns TRUE if the table is full.
 */
-int
+static int
 global_scope(STRING *name)
 {
 	int i, s1;
@@ -1704,7 +1714,7 @@ global_scope(STRING *name)
 **	were promoted to Global Scope.  Only the first declaration can be promoted.
 **	Subsequent declarations must be mangled.
 */
-void
+static void
 enter_global(STRING *name)
 {
 	int i, j, k, l;
@@ -1732,7 +1742,7 @@ enter_global(STRING *name)
 **	If the string emit_delay is not empty, write it to the output file.
 **	Reset the emit_delay string.
 */
-void
+static void
 flush_emit_delay(void)
 {
 	int k, len;
@@ -1757,7 +1767,7 @@ flush_emit_delay(void)
 **
 **	Emit diverted code
 */
-void
+static void
 emit_divert(int level)
 {
 	int i, j, k, len;
@@ -1787,7 +1797,7 @@ emit_divert(int level)
 **	Emit diverted code to the string file
 **	Do not write the procedure definition in location zero.
 */
-void
+static void
 emit_string_divert(int level)
 {
 	int i, j, k, len;
@@ -1812,7 +1822,7 @@ emit_string_divert(int level)
 **
 **	Emit one line of text to the .c file
 */
-void
+static void
 emit(STRING *string, int line_number)
 {
 	static STRING tabs = STR("\t\t\t\t\t");
@@ -1899,7 +1909,7 @@ emit(STRING *string, int line_number)
 **
 **	Emit one line of text to the .c file, left justified.
 */
-void
+static void
 emit_preprocessor(STRING *string, int line_number)
 {
 	int i;
@@ -1922,7 +1932,7 @@ emit_preprocessor(STRING *string, int line_number)
 **
 **	Emit one line of code.  This function controls code diverts.
 */
-void
+static void
 emit_code(STRING *string, int line_number)
 {
 	static STRING undef = STR("Undefined parameter: ");
@@ -2056,7 +2066,7 @@ emit_code(STRING *string, int line_number)
 **	Called at the beginning of a function declaration to save procmark and parct.
 **	Handles diverts for nested functions.
 */
-void
+static void
 push_procmark(int p)
 {
 	STRING *push_procmark_text;
@@ -2086,13 +2096,13 @@ push_procmark(int p)
 }
 
 /*
-**	push_divert(p)
+**	push_divert()
 **
 **	Called at the start of a new procedure to emit diverted code and
 **	bump proc_nest.
 */
-void
-push_divert(int p)
+static void
+push_divert(void)
 {
 	proc_nest++;
 	if (proc_nest < DIVERT_LEVEL) {
@@ -2107,7 +2117,7 @@ push_divert(int p)
 **
 **	Called at the end of a procedure to emit diverted code.
 */
-void
+static void
 pop_divert(void)
 {
 	if (proc_nest < DIVERT_LEVEL) {
@@ -2122,7 +2132,7 @@ pop_divert(void)
 **	Emit a string constant to the .xh file.
 **	Return the fabricated variable number.
 */
-int
+static int
 string_constant(STRING *string)
 {
 	STRING *string_constant_text;
@@ -2176,7 +2186,7 @@ string_constant(STRING *string)
 **	This is done to be compatable with the original XPL compiler.
 **	Return the fabricated variable number.
 */
-int
+static int
 string_variable(STRING *string)
 {
 	STRING *string_variable_text, *string_variable_name;
@@ -2222,7 +2232,7 @@ string_variable(STRING *string)
 **	Dump the init strings to the .xh file.
 **	Last is set TRUE if this is the last call.
 */
-void
+static void
 dump_init_strings(int last)
 {
 	int i;
@@ -2254,7 +2264,7 @@ dump_init_strings(int last)
 **	These values get set when the program is first executed.  The initialization
 **	covers the entire program and is only done once.
 */
-void
+static void
 enter_init_string(int desc, int identifier)
 {
 	if (init_string >= INIT_STRING_MAX) {
@@ -2266,30 +2276,11 @@ enter_init_string(int desc, int identifier)
 }
 
 /*
-**	emit_headers()
-**
-**	Emit the start of the .c file.  Starting with the include headers.
-*/
-void
-emit_headers(void)
-{
-	fprintf(out_file, "#include \"xpl.h\"\n");
-	fprintf(out_file, "#include \"%s\"\n", string_filename);
-	fprintf(out_file, "static int date_of_generation = {%d};\n", __xpl_date());
-	fprintf(out_file, "static int time_of_generation = {%d};\n", __xpl_time());
-	fprintf(out_file, "static unsigned char *corebyte;\n");
-	fprintf(out_file, "static short *corehalfword;\n");
-	fprintf(out_file, "static int *coreword, argc;\n");
-	fprintf(out_file, "static XPL_LONG *corelongword;\n");
-	output_line = 7;
-}
-
-/*
 **	emit_main_program()
 **
 **	Emit the function main()
 */
-void
+static void
 emit_main_program(void)
 {
 	static STRING freespace = STR("FREESPACE");
@@ -2346,7 +2337,7 @@ emit_main_program(void)
 **
 **	Get a temporory descriptor address from the stack.
 */
-int
+static int
 get_temp(void)
 {
 	if (tsp < TSP_MAX) {
@@ -2364,7 +2355,7 @@ get_temp(void)
 **	Reset the temporory descriptor address stack.
 **	This should be called after each statement.
 */
-void
+static void
 reset_temp(void)
 {
 	tsp = 0;
@@ -2376,7 +2367,7 @@ reset_temp(void)
 **	Clear the temporory descriptor address stack.
 **	This should be called after each procedure.
 */
-void
+static void
 clear_temp(void)
 {
 	for (tsp = 0; tsp < TSP_MAX; tsp++) {
@@ -2390,7 +2381,7 @@ clear_temp(void)
 **
 **	Return TRUE if this is a valid temparary string address
 */
-int
+static int
 valid_temp(int dx)
 {
 	int i;
@@ -2411,7 +2402,7 @@ valid_temp(int dx)
 **	Map a C reserved word to a unique identifier in XPL.
 **	This table also translates identifiers with illegal characters in C.
 */
-void
+static void
 enter_mapper(STRING *name, STRING *value)
 {
 	static STRING overflow = STR("Mapper table overflow");
@@ -2441,7 +2432,7 @@ enter_mapper(STRING *name, STRING *value)
 **
 **	Enter the C language reserved words into the mapper table.
 */
-void
+static void
 enter_keywords(void)
 {
 	STRING *enter_keywords_text;
@@ -2462,7 +2453,7 @@ enter_keywords(void)
 **	A squirrley_name is a name that contains both a unique number and
 **	most, it not all, of the original identifier.
 */
-STRING *
+static STRING *
 squirrley_name(STRING *outstr, STRING *ident)
 {
 	int i, j, s1;
@@ -2493,7 +2484,7 @@ squirrley_name(STRING *outstr, STRING *ident)
 **	Return TRUE if this identifier contains characters not permitted
 **	in an identifer in the C language.
 */
-int
+static int
 poison_identifier(STRING *ident)
 {
 	int i, s1;
@@ -2514,7 +2505,7 @@ poison_identifier(STRING *ident)
 **
 **	Map C keywords to XPL identifiers
 */
-int
+static int
 keyword_map(STRING *outstr, STRING *ident)
 {
 	int i, s1;
@@ -2536,7 +2527,7 @@ keyword_map(STRING *outstr, STRING *ident)
 **	Enter a symbol in the symbol table
 **	Return the index of the new entry
 */
-int
+static int
 enter(STRING *name, int type, int location, int line)
 {
 	static STRING duplicate = STR("duplicate declaration for: ");
@@ -2659,7 +2650,7 @@ enter(STRING *name, int type, int location, int line)
 **	Enter a parameter for the last function inserted into the symbol table
 **	Return the index of the new entry
 */
-int
+static int
 enter_parameter(int type, int location, int line)
 {
 	ndecsy = ndecsy + 1;
@@ -2691,7 +2682,7 @@ enter_parameter(int type, int location, int line)
 **	If the identifier is not found a symbol table entry is created
 **	with the default_type.
 */
-void
+static void
 id_lookup(int p, int default_type)
 {
 	static STRING undeclared = STR("undeclared identifier: ");
@@ -2756,7 +2747,7 @@ id_lookup(int p, int default_type)
 **
 **	Putting the macros in the symbol table will give them scope.
 */
-int
+static int
 enter_macro(STRING *name, STRING *value)
 {
 	int sym;
@@ -2774,7 +2765,7 @@ enter_macro(STRING *name, STRING *value)
 **
 **	Create a macro that will translate an uppercase <identifier> to lowercase.
 */
-void
+static void
 upper_case_macro(char *name)
 {
 	STRING *upper_case_macro_text, *upper_case_macro_string;
@@ -2803,7 +2794,7 @@ upper_case_macro(char *name)
 **	Create a set of macros that will translate uppercase keywords and builtin
 **	function names to lowercase.  This implements the -I option.
 */
-void
+static void
 ignore_case_macro(void)
 {
 	static int did_this;
@@ -2833,7 +2824,7 @@ ignore_case_macro(void)
 **	Allocates storage for the identifier at sym in the symbol table.
 **	Set dimension to dim
 */
-void
+static void
 allocate(int sym, int type, int dim, int array)
 {
 	/* We only allocate string space.  Everything else is done by the C compiler */
@@ -2853,7 +2844,7 @@ allocate(int sym, int type, int dim, int array)
 **	<type declaration> ::= <identifier specification> <type>
 **	<type declaration> ::= <bound head> <expression> ) <type>
 */
-void
+static void
 tdeclare(int dim, int array)
 {
 	static STRING declare_static = STR("static ");
@@ -2931,7 +2922,7 @@ tdeclare(int dim, int array)
 **	Convert a string to a string.
 **	Return the new descriptor
 */
-STRING *
+static STRING *
 build_string(STRING *outstr, STRING *string)
 {
 	static STRING double_quote = STR("\"");
@@ -2965,7 +2956,7 @@ build_string(STRING *outstr, STRING *string)
 **	Truncate the integer constant to match type so the C compiler does not
 **	complain about it.
 */
-void
+static void
 truncate_constant(int p, int type)
 {
 	short s;
@@ -3004,11 +2995,101 @@ truncate_constant(int p, int type)
 }
 
 /*
+**	decimal_constant(outstr, number, type)
+**
+**	Convert a constant to a string.  Add 'LL' to the end of large
+**	constants and watch out for the smallest negative number.
+**
+**	return the string.
+*/
+static STRING *
+decimal_constant(STRING *outstr, XPL_LONG number, int type)
+{
+	int j;
+
+	j = (int) number;
+	if (type == DOUBLEWORD) {
+		if (number == j) {
+			type = FIXEDTYPE;
+		}
+	}
+	if (number > -32767 && number <= 32767) {
+		type = 0;
+	}
+	/* Porting note:  If you are cross compiling to a compiler
+	   that supports C99 or C11 then you should remove this check. */
+	if ((control['G'] & 1) == 1) {
+		type = 0;
+	}
+#if defined(INT32_MIN)
+	if (number == INT32_MIN && type == FIXEDTYPE) {
+		static STRING bit32_min = STR("INT32_MIN");
+		return __xpl_wrapper(outstr, &bit32_min);
+	}
+#endif
+#if defined(INT32_MAX)
+	if (number == INT32_MAX && type == FIXEDTYPE) {
+		static STRING bit32_max = STR("INT32_MAX");
+		return __xpl_wrapper(outstr, &bit32_max);
+	}
+#endif
+#if defined(INT64_MIN)
+	if (number == INT64_MIN) {
+		static STRING bit64_min = STR("INT64_MIN");
+		return __xpl_wrapper(outstr, &bit64_min);
+	}
+#endif
+#if defined(INT64_MAX)
+	if (number == INT64_MAX) {
+		static STRING bit64_max = STR("INT64_MAX");
+		return __xpl_wrapper(outstr, &bit64_max);
+	}
+#endif
+#if defined(INT32_C)
+	if (type == FIXEDTYPE) {
+		if (number < 0) {
+			static STRING neg_int32 = STR("(-INT32_C(");
+
+			CAT_INT(outstr, &neg_int32, -number);
+			return CAT(outstr, outstr, &close_close);
+		} else {
+			static STRING int32 = STR("INT32_C(");
+
+			CAT_INT(outstr, &int32, number);
+			return CAT(outstr, outstr, &close_paren);
+		}
+	}
+#endif
+#if defined(INT64_C)
+	if (type == DOUBLEWORD) {
+		if (number < 0) {
+			static STRING neg_int64 = STR("(-INT64_C(");
+
+			CAT_INT(outstr, &neg_int64, -number);
+			return CAT(outstr, outstr, &close_close);
+		} else {
+			static STRING int64 = STR("INT64_C(");
+
+			CAT_INT(outstr, &int64, number);
+			return CAT(outstr, outstr, &close_paren);
+		}
+	}
+#endif
+	if (number < 0) {
+		CAT_INT(outstr, &open_paren, number);
+		CAT(outstr, outstr, &close_paren);
+	} else {
+		DECIMAL(outstr, number);
+	}
+	return outstr;
+}
+
+/*
 **	setinit(p, vp)
 **
 **	Places initial values into data area
 */
-void
+static void
 setinit(int p, int vp)
 {
 	static STRING bad_constant = STR("Illegal CONSTANT in INITIAL list");
@@ -3082,7 +3163,7 @@ setinit(int p, int vp)
 			emit_declare(&ps_text(p), ps_line[vp]);
 			ps_text(p)._Length = 0;
 		}
-		DECIMAL(&ps_name(vp), ps_value[vp]);
+		decimal_constant(&ps_name(vp), ps_value[vp], itype);
 		CAT(&ps_text(p), &ps_text(p), &ps_name(vp));
 		if (initial_count > 0) {
 			CAT(&ps_text(p), &ps_text(p), &comma_x1);
@@ -3096,7 +3177,7 @@ setinit(int p, int vp)
 **
 **	Move all the compiler stacks down from f to t
 */
-void
+static void
 movestacks(int f, int t)
 {
 	ps_type[t] = ps_type[f];    ps_name(t) = ps_name(f);
@@ -3112,7 +3193,7 @@ movestacks(int f, int t)
 **	Set ps_type[] for the constant at p.
 **	The result could be BOOLEAN, BYTETYPE, HALFWORD, FIXEDTYPE, or DOUBLEWORD.
 */
-void
+static void
 set_type_of_constant(int p)
 {
 	short s;
@@ -3151,7 +3232,7 @@ set_type_of_constant(int p)
 **
 **	Force the object at p into the ps_text[] string array.
 */
-void
+static void
 forceaccumulator(int p, int tt, int paren)
 {
 	static STRING force_type = STR("forceaccumulator type ");
@@ -3168,12 +3249,7 @@ forceaccumulator(int p, int tt, int paren)
 	switch(ps_type[p]) {
 	case CONSTANT:
 		truncate_constant(p, tt);
-		if (ps_value[p] < 0) {
-			CAT_INT(forceaccumulator_text, &open_paren, ps_value[p]);
-			CAT(&ps_text(p), forceaccumulator_text, &close_paren);
-		} else {
-			us_decimal(&ps_text(p), ps_value[p]);
-		}
+		decimal_constant(&ps_text(p), ps_value[p], tt);
 		set_type_of_constant(p);
 		ps_bin[p] = BIN_ACCUMULATOR;
 		break;
@@ -3260,7 +3336,7 @@ forceaccumulator(int p, int tt, int paren)
 **
 **	Get a descriptor for the operand p
 */
-void
+static void
 forcedescript(int p, int tt)
 {
 	STRING *forcedescript_text;
@@ -3347,7 +3423,7 @@ forcedescript(int p, int tt)
 **
 **	Accept any value, springs or integers.
 */
-void
+static void
 the_big_easy(int p)
 {
 	int t;
@@ -3368,7 +3444,7 @@ the_big_easy(int p)
 **	fixed length character strings to create a full sized descriptor that
 **	does not derive the length from the current string.
 */
-void
+static void
 createdescript(int p)
 {
 	STRING *createdescript_text;
@@ -3395,7 +3471,7 @@ createdescript(int p)
 **
 **	Do type conversion on parameters
 */
-void
+static void
 stuff_parameter(int last_parameter)
 {
 	static STRING too_many = STR("Too many actual parameters");
@@ -3463,7 +3539,7 @@ stuff_parameter(int last_parameter)
 **	f is the stack pointer for file().
 **	b is the stack pointer for the buffer.
 */
-void
+static void
 file_builtin(int f, int b)
 {
 	static STRING bad_buffer = STR("Target of file must be an array");
@@ -3490,7 +3566,7 @@ file_builtin(int f, int b)
 **	Modify the emitted code to store the string directly into the
 **	destination rather than a temp descriptor.
 */
-int
+static int
 store_direct(int f, int t)
 {
 	int i, j, len, value, chr;
@@ -3544,7 +3620,7 @@ store_direct(int f, int t)
 **	<assignment> ::= <variable> <replace> <expression>
 **	<assignment> ::= <left part> <assignment>
 */
-void
+static void
 genstore(int mp, int sp)
 {
 	static STRING put_byte = STR("__xpl_put_byte");
@@ -3698,7 +3774,7 @@ genstore(int mp, int sp)
 **
 **	Return TRUE if the value on the parse stack at p is a character string.
 */
-int
+static int
 character_string(int p)
 {
 	return (ps_type[p] == STRINGCON || ps_type[p] == DESCRIPT ||
@@ -3737,7 +3813,7 @@ static STRING aop_string[] = {
 **
 **	Emit code for an Arithmetic operation.
 */
-void
+static void
 arithemit(int mp, int op, int sp)
 {
 	static STRING bad_op = STR("Arithmetic with a string descriptor");
@@ -3921,7 +3997,7 @@ arithemit(int mp, int op, int sp)
 **	<iteration control> ::= to <expression>
 **	<iteration control> ::= to <expression> by <expression>
 */
-void
+static void
 set_limit(void)
 {
 	movestacks(mpp1, mp);
@@ -3936,7 +4012,7 @@ set_limit(void)
 **	Return TRUE if the variable is subscripted by something other than
 **	a constant.
 */
-int
+static int
 subscripted(STRING *var)
 {
 	int ch, i;
@@ -3971,7 +4047,7 @@ subscripted(STRING *var)
 **
 **	Parse stack location zero is used for the step.
 */
-void
+static void
 for_loop(void)
 {
 	static STRING bad_subscript = STR("subscripted DO variable");
@@ -4089,6 +4165,7 @@ for_loop(void)
 **
 **	Display the token and it's value.
 */
+void dump_token(void);
 void
 dump_token(void)
 {
@@ -4119,18 +4196,50 @@ dump_token(void)
 }
 
 /*
+**	emit_headers()
+**
+**	Emit the start of the .c file.  Starting with the include headers.
+*/
+static void
+emit_headers(void)
+{
+	STRING *emit_headers_string;
+
+	fprintf(out_file, "#include \"xpl.h\"\n");
+	fprintf(out_file, "#include \"%s\"\n", string_filename);
+	fprintf(out_file, "static unsigned char *corebyte;\n");
+	fprintf(out_file, "static short *corehalfword;\n");
+	fprintf(out_file, "static int *coreword, argc;\n");
+	fprintf(out_file, "static XPL_LONG *corelongword;\n");
+	output_line = 6;	/* Set to the number of lines in 'out_file' */
+
+	emit_headers_string = get_temp_descriptor();
+
+	decimal_constant(emit_headers_string, __xpl_date(), FIXEDTYPE);
+	CAT(emit_headers_string, emit_headers_string, &null_terminator);
+	fprintf(string_file, "#define __xpl_date_of_generation (%s)\n",
+		emit_headers_string->_Address);
+	decimal_constant(emit_headers_string, __xpl_time(), FIXEDTYPE);
+	CAT(emit_headers_string, emit_headers_string, &null_terminator);
+	fprintf(string_file, "#define __xpl_time_of_generation (%s)\n",
+		emit_headers_string->_Address);
+
+	release_temp_descriptor(1);
+}
+
+/*
 **	initialize()
 **
 **	Initialize the compiler.
 */
-int
+static int
 initialize(void)
 {
 	static STRING line_name = STR("__LINE__");
 	static STRING address = STR("address");
 	static STRING bit32 = STR("bit(32)");
 	static STRING bit64 = STR("bit(64)");
-	int i, j, k, addr_type;
+	int i, j, k;
 	char *s;
 
 	/* ndescript is bug compatable */
@@ -4236,8 +4345,7 @@ initialize(void)
 		} else
 		if (strcasecmp(s, ";") == 0) stopit[i] = TRUE;  else
 		if (strcasecmp(s, "|") == 0) or_token = i; else
-		if (strcasecmp(s, "||") == 0) concatenate_token = i; else
-		;
+		if (strcasecmp(s, "||") == 0) concatenate_token = i;
 	}
 	stopit[do_token] = TRUE;
 	stopit[end_token] = TRUE;
@@ -4273,11 +4381,11 @@ initialize(void)
 	if (sizeof(void *) <= 4 || (control['G'] & 1) == 1) {
 		/* declare address literally 'bit(32)'; */
 		address_symbol = enter_macro(&address, &bit32);
-		addr_type = FIXEDTYPE;
+		void_star = FIXEDTYPE;
 	} else {
 		/* declare address literally 'bit(64)'; */
 		address_symbol = enter_macro(&address, &bit64);
-		addr_type = DOUBLEWORD;
+		void_star = DOUBLEWORD;
 	}
 	line_symbol = enter_macro(&line_name, &null);
 
@@ -4292,7 +4400,7 @@ initialize(void)
 		} else {
 			k = builtin[i].type;
 			if (k == ADDRESS_TYPE) {
-				k = addr_type;
+				k = void_star;
 			}
 			j = enter(&builtin[i].name, k, builtin[i].location, 0);
 			syt_dim[j] = builtin[i].dimension;
@@ -4333,7 +4441,7 @@ initialize(void)
 
 /*               Symbol and statistics printout                         */
 
-int
+static int
 string_gt(STRING *a, STRING *b)
 {
 	/*  Does an honest string compare for a > b.  Uses the
@@ -4358,7 +4466,7 @@ string_gt(STRING *a, STRING *b)
 	return v;
 }
 
-STRING *
+static STRING *
 outline(STRING *outstr, STRING *name, int sym)
 {
 	static STRING at = STR(" at ");
@@ -4399,7 +4507,7 @@ outline(STRING *outstr, STRING *name, int sym)
 **	Lists the symbols in the procedure that has just been
 **	compiled if dollar S or dollar D is enabled
 */
-void
+static void
 symboldump(void)
 {
 	int i, j, k, l, m;
@@ -4471,7 +4579,7 @@ symboldump(void)
 **
 **	Dump statistics and other information gathered during the compilation.
 */
-void
+static void
 dumpit(void)
 {
 	static STRING global_info = STR("Identifiers promoted to Global Scope:");
@@ -4559,7 +4667,7 @@ dumpit(void)
 	__xpl_info();
 }
 
-void
+static void
 stack_dump(void)
 {
 	static STRING partial_parse = STR("Partial parse to this point is: ");
@@ -4590,7 +4698,7 @@ stack_dump(void)
 **
 **	Call error() with the "Illegal argument" message.
 */
-void
+static void
 illegal_argument(int p, int line)
 {
 	static STRING illarg = STR("Illegal argument of: ");
@@ -4607,7 +4715,7 @@ illegal_argument(int p, int line)
 **
 **	Call error() with the "Too many arguments" message.
 */
-void
+static void
 too_many_arguments(int p, int line)
 {
 	static STRING too_many = STR("Too many arguments for: ");
@@ -4624,7 +4732,7 @@ too_many_arguments(int p, int line)
 **
 **	Call error() with the "Too few arguments" message.
 */
-void
+static void
 too_few_arguments(int p, int line)
 {
 	static STRING too_few = STR("Too few arguments for: ");
@@ -4688,7 +4796,7 @@ enum {PN_DUMMY = 0, PN_PROGRAM,
 	PN_CONSTANT_1,
 	PN_CONSTANT_2};
 
-void
+static void
 synthesize(int production_number)
 {
 	/* One statement for each production of the grammar */
@@ -5061,7 +5169,7 @@ synthesize(int production_number)
 		/*  <procedure head> ::= <procedure name>    */
 		push_procmark(mp);
 		returned_type = 0;
-		push_divert(mp);
+		push_divert();
 		CAT(synthesize_string, &dcltypes[returned_type], &ps_text(mp));
 		CAT(&ps_text(mp), synthesize_string, &no_parameters);
 		break;
@@ -5075,13 +5183,13 @@ synthesize(int production_number)
 		syt_type[ps_symtab[mp]] = ps_type[mpp1] + 8;
 		push_procmark(mp);
 		returned_type = ps_type[mpp1];
-		push_divert(mp);
+		push_divert();
 		CAT(synthesize_string, &dcltypes[returned_type], &ps_text(mp));
 		CAT(&ps_text(mp), synthesize_string, &no_parameters);
 		break;
 	case PN_PROCEDURE_HEAD_3:
 		/*  <procedure head> ::= <procedure name> <parameter list>    */
-		push_divert(mp);
+		push_divert();
 		syt_disp[ps_symtab[mp]] = temp_variable_name - parct + 1;
 		ps_symtab[mp] = ps_symtab[mpp1];
 		returned_type = 0;
@@ -5094,7 +5202,7 @@ synthesize(int production_number)
 			/* Functions must return a descriptor */
 			ps_type[sp] = CHRTYPE;
 		}
-		push_divert(mp);
+		push_divert();
 		syt_disp[ps_symtab[mp]] = temp_variable_name - parct + 1;
 		returned_type = ps_type[sp];
 		syt_type[ps_symtab[mp]] = returned_type + 8;
@@ -5610,7 +5718,7 @@ synthesize(int production_number)
 
 				error(&multisub, __LINE__, 0);
 			}
-			forceaccumulator(mpp1, DOUBLEWORD, TRUE);
+			forceaccumulator(mpp1, FIXEDTYPE, TRUE);
 			if (ps_type[mpp1] < BOOLEAN || ps_type[mpp1] > DOUBLEWORD) {
 				static STRING bad_string =
 					STR("String not allowed as a subscript");
@@ -6011,7 +6119,8 @@ synthesize(int production_number)
 			{
 				static STRING bin_xfprintf = STR("__xpl_xprintf(1, (void *)(");
 
-				ps_text(mp) = bin_xfprintf;
+				CAT(synthesize_string, &bin_xfprintf, &dcltypes[void_star]);
+				CAT(&ps_text(mp), synthesize_string, &close_open);
 			}
 			break;
 		case BIN_XSPRINTF:
@@ -6215,7 +6324,7 @@ synthesize(int production_number)
 **
 **	Output the production about to be applied.
 */
-void
+static void
 dump_production(int left_part)
 {
 	static STRING replace = STR("  ::= ");
@@ -6235,7 +6344,7 @@ dump_production(int left_part)
 	release_temp_descriptor(2);
 }
 
-int
+static int
 right_conflict(int left)
 {
 	/* This procedure is TRUE if token is not a legal right context of left */
@@ -6243,7 +6352,7 @@ right_conflict(int left)
 }
 
 
-void
+static void
 recover(void)
 {
 	static STRING resume = STR("Resume:");
@@ -6265,7 +6374,7 @@ recover(void)
 	release_temp_descriptor(1);
 }
 
-int
+static int
 stacking(void)
 {	/* Stacking decision function */
 	static STRING ill_symbol = STR("Illegal symbol pair: ");
@@ -6309,7 +6418,7 @@ stacking(void)
 	} /*  Of do forever */
 }
 
-int
+static int
 pr_ok(int prd)
 {
 	/* Decision procedure for context check of equal or imbedded right parts */
@@ -6345,7 +6454,7 @@ pr_ok(int prd)
 
 /*                     Analysis algorithm                                  */
 
-void
+static void
 reduce(void)
 {
 	static STRING no_production = STR("No production is applicable");
@@ -6381,7 +6490,7 @@ reduce(void)
 	recover();
 }
 
-void
+static void
 compilation_loop(void)
 {
 	static STRING stack_overflow = STR("Stack overflow *** compilation aborted ***");
@@ -6412,7 +6521,7 @@ compilation_loop(void)
 **
 **	Summerize the compilation
 */
-void
+static void
 print_summary(void)
 {
 	static STRING cards = STR(" cards containing ");
@@ -6467,7 +6576,7 @@ print_summary(void)
 **
 **	Display the usage message
 */
-void
+static void
 usage(void)
 {
 	printf("Usage:\n   xpl [-DGHIKLmMSTUWXY] [-v number] [-o outfile] [-s stringfile] file\n");

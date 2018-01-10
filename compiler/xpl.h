@@ -84,8 +84,11 @@ extern char __xpl_FILE_eol[__XPL_FILE_MAX];
 extern int __xpl_FILE_flags[__XPL_FILE_MAX];
 extern int __xpl_xerrno;	/* Set to the Unix value of errno if error in the runtime */
 
+int __xpl_xio_get_flags(int unit);
+int __xpl_xio_set_flags(int unit, int value);
 int __xpl_xfopen(__xpl_string *filename, __xpl_string *mode);
 int __xpl_xfclose(int unit);
+int __xpl_xfdopen(int fd, __xpl_string *mode);
 __xpl_string *__xpl_output(int num, __xpl_string *str);
 __xpl_string *__xpl_input(__xpl_string *outstr, int num);
 int __xpl_xprintf(int, void *ref, __xpl_string *xfmt, ...);

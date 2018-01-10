@@ -5,7 +5,7 @@ CFLAGS= -Wall
 XPLDIR=..
 LDLIBS=libxpl.a
 LIBFILES=xplrt.o unique.o expand.o xio.o hex.o chrfixed.o xprintf.o\
-	xunlink.o xrewind.o xmkstemp.o
+	xunlink.o xrewind.o xmkstemp.o xfdopen.o xflags.o
 
 %.c:	%.xpl
 	./xpl $< -o $@

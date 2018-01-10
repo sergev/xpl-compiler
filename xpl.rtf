@@ -11,15 +11,14 @@
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ri0\pardirnatural\qc\partightenfactor0
 
 \f0\fs24 \cf0 \
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ri0\pardirnatural\qc\partightenfactor0
-\cf0 XPL to C Source Language Translator\
+XPL to C Source Language Translator\
 Daniel Weaver\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\qc\partightenfactor0
 \cf0 \
 \pard\tx220\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li720\fi-720\pardirnatural\partightenfactor0
 \ls1\ilvl0\cf0 1.		Introduction\cf2 \cb3 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li721\fi-722\ri0\pardirnatural\partightenfactor0
-\cf2 \
+\cf2 \cb3 \
 	      \CocoaLigature0 XPL is a dialect of PL/I created by W. M. McKeeman et. al. and described in his book \ul A Compiler Generator\ulnone .  XPL was designed to be used in table-driven syntax-directed translators such as the XPL compiler itself.  The XPL system, which includes the compiler, SKELETON, and ANALYZER, provides a quick and efficient method for defining a language.  If a BNF (BACKUS-NAUR FORM) description of a computer language is input to the ANALYZER, it generates the syntax tables used in either SKELETON or the XPL compiler.  The syntax tables along with SKELETON form a syntax checker for your BNF grammar. Code emitters may be added to upgrade the syntax checker to a compiler.\
 \
 1.1	Source Translation\
@@ -35,6 +34,7 @@ Daniel Weaver\
 1.3	Installation\
 \
 	      It is my hope that the XPL compiler will run straight out of the box but you still may need to tweak it to get BIT(64) integers to work.  Look at the file xpl.h and check the definitions for XPL_LONG, XPL_UNSIGNED_LONG and XPL_ADDRESS.  If your compiler does not support the C99 (or later) standard then you may need to tweak these typedefs to get BIT(64) to work properly.\
+	    This compiler works best when run on a C compiler that supports C99 (or later) standard.\
 \
 2.0	Constants, Identifiers and Comments\
 \
@@ -614,7 +614,7 @@ Daniel Weaver\
 	                    | to <expression> by <expression>
 \f0\b0 \
 \
-	        It is a little known fact that the DO loop was invented by a file clerk who worked for a small computer manufacturer at Hursley Laboratory in the UK.  The programmers in this computer company spent much of their time in committee designing large compiler projects.  The statements made in each meeting had to be numbered, filed and sent back to committee for review.  The file clerk, whose name is David Owens, was given the task of filing the results of the meetings.  David initialed each report before sending it back to the committee.  The committee came to refer to the iterative processing of statements as the David Owens loop, or DO loop for short.\
+	        I had a friend who went to England and while he was in a Pub he overheard two guys talking about the origin of the DO loop.  One of the guys in the Pub said that the DO loop was invented by a file clerk who worked for a computer company at Hursley Laboratory in the UK.  The programmers in this computer company spent much of their time in committee designing large compiler projects.  The statements made in each meeting had to be numbered, filed and sent back to committee for review.  The file clerk, whose name is David Owens, was given the task of filing the results of the meetings.  David initialed each report before sending it back to the committee.  The committee came to refer to the iterative processing of statements as the David Owens loop, or DO loop for short.\
 	      The DO loop provides iterative execution of a group of statements a certain number of times.  The DO loop provides a start value, an end value and an optional increment.  When the DO loop begins it sets the iteration variable to the start value.  If the iteration variable exceeds the end value then the body of the DO loop is never executed.  Otherwise the statements within the DO loop are executed.  After executing the statements in the loop, the variable is incremented by the expression in the BY clause of the DO statement.  Then the whole process repeats.  If the BY clause is omitted an increment of one is used.  Negative constants are permitted in the DO loop BY clause but all non-constant expressions are assumed to be positive.  The DO loop variable may not be indexed.  The escape value and loop increment can not be changed from within the DO loop, but the DO loop variable may be modified by the statements within the loop.  Here are some examples:\
 \
 		
@@ -1257,6 +1257,20 @@ Appendix B --- Built-in Functions --- \
 \b xfopen
 \b0 .\
 \
+	xfdopen(fd, mode)  A function that interfaces to 
+\b fdopen()
+\b0  in the C library.  This function returns a 
+\b unit
+\b0  number if successful and returns -1 if there was an error.  The file descriptor 
+\b fd
+\b0  must be a valid file descriptor for an open file.  The 
+\b mode
+\b0  is a CHARACTER string that holds one of the values described by the 
+\b xfopen
+\b0  procedure call.  See 
+\b xfopen
+\b0 .\
+\
 	xfopen(filename, mode)	A function that interfaces to the C 
 \b fopen()
 \b0  function.  This function returns a 
@@ -1313,9 +1327,30 @@ Appendix B --- Built-in Functions --- \
 \b declare age fixed initial(4);\
 \
 			call xfprintf(unit, "(c) I am %d years old today.\\n", age);\
-\
 
-\b0 	xmkstemp(filename, mode)     Make a temporary file.  This function will call 
+\b0 \
+	xio_get_flags(unit)    Return the I/O flags for the specified 
+\b unit
+\b0 .  The current implementation only defines one flag bit.\
+			0 -> Normal I/O conforming to the original XPL specification.\
+			1 -> Binary I/O.  Input is raw data.  Output does not get a newline appended.\
+			    If the 
+\b unit
+\b0  is out of range the function returns -1 and 
+\b xerrno
+\b0  is set to EBADF.\
+\
+	xio_set_flags(unit, value)    Set the I/O flags for the specified 
+\b unit
+\b0 .  If 
+\b unit
+\b0  is out of range the function returns -1 and sets 
+\b xerrno
+\b0  to EBADF.  See 
+\b xio_get_flags
+\b0  for a definition of the flag bits.\
+\
+	xmkstemp(filename, mode)     Make a temporary file.  This function will call 
 \b mkstemp()
 \b0  from the C library.  When the 
 \b xmkstemp
@@ -1417,7 +1452,7 @@ Appendix B --- Built-in Functions --- \
 \
 Appendix C \'97 Name space pollution\
 \
-	    This XPL compiler suffers serious name space pollution because it must deal with both XPL identifiers and the special purpose identifiers defined by the underlying C compiler.  The XPL compiler mangles identifiers and PROCEDURE names to minimize the impact of name conflicts.  In the event that a local variable does cause a name conflict the -H option (or the $H flag) may be set to tell the compiler to mangle all identifier names.  However the -H option has no useful effect on PROCEDURES that are declared EXTERNAL.  Identifiers used in the XPL runtime may not be used as EXTERNAL PROCEDURES.  All reserved words in the C language are not permitted as EXTERNAL PROCEDURE names.  Identifiers promoted to global scope are not permitted as EXTERNAL PROCEDURES.  Identifiers that start with __XPL and __xpl are reserved for the compiler.\
+	    This XPL compiler suffers from name space pollution because it must deal with both XPL identifiers and the special purpose identifiers defined by the underlying C compiler.  The XPL compiler mangles identifiers and PROCEDURE names to minimize the impact of name conflicts.  In the event that a local variable does cause a name conflict the -H option (or the $H flag) may be set to tell the compiler to mangle all identifier names.  However the -H option has no useful effect on PROCEDURES that are declared EXTERNAL.  Identifiers used in the XPL runtime may not be used as EXTERNAL PROCEDURES.  All reserved words in the C language are not permitted as EXTERNAL PROCEDURE names.  Identifiers promoted to global scope are not permitted as EXTERNAL PROCEDURES.  Identifiers that start with __XPL and __xpl are reserved for the compiler.\
 \
 	    The -D option will display the table of \'93Identifiers promoted to Global Scope\'94 and the table of \'93Identifier mapper definitions\'94 at the end of compilation.  The identifiers promoted to global scope depend on the identifiers used in nested PROCEDURES.\
 \
@@ -1431,14 +1466,12 @@ Appendix C \'97 Name space pollution\
 	corehalfword\
 	corelongword\
 	coreword\
-	date_of_generation\
 	descriptor\
 	file_record_size\
 	freebase\
 	freelimit\
 	freepoint\
 	ndescript\
-	time_of_generation\
 \
 \
 	Identifiers promoted to Global Scope:\
