@@ -8,9 +8,11 @@
 all:
 	$(MAKE) $(MFLAGS) -C compiler
 	$(MAKE) $(MFLAGS) -C tws
+	$(MAKE) $(MFLAGS) -C tools
 
 clean:
 	$(MAKE) $(MFLAGS) -C compiler clean
 	$(MAKE) $(MFLAGS) -C tws clean
-	rm -f xpl xpl.h libxpl.a
+	$(MAKE) $(MFLAGS) -C tools clean
+	rm -f xpl xpl.h libxpl.a xformat xxref
 
