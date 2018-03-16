@@ -906,7 +906,7 @@ produce:
    never_been_here:
       procedure bit(1); /* Record the f11.  return FALSE if it is already in table  */
       declare new_f11 bit(PRO_BITS * 4);
-      declare (i, k, new_place) fixed;
+      declare (k, new_place) fixed;
 
       /* The very last entry in the f11() array is reserved for the
          boundary condition in the function index_f11() */

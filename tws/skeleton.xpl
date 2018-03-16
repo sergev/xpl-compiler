@@ -369,7 +369,7 @@ error:
 get_card:
    procedure;
       /* Does all card reading and listing                                 */
-      declare i fixed, (temp, temp0, rest) character, reading bit(1);
+      declare i fixed, (temp, temp0, rest) character;
             buffer = input;
             if length(buffer) = 0 then
                do; /* signal for EOF */
@@ -411,7 +411,6 @@ scan:
       callcount(3) = callcount(3) + 1;
       failsoft = TRUE;
       bcd = '';  number_value = 0;
-   scan1:
       do FOREVER;
          if cp > text_limit then call get_card;
          else
