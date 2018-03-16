@@ -1,7 +1,7 @@
 /*
 **	XPL to C source language translator runtime
 **
-**	Support for dynamic character strings, date, time, abort and exit.
+**	Support for dynamic character strings, abort and exit.
 **
 **	Author: Daniel Weaver
 */
@@ -9,8 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
-#include <sys/time.h>
 #include "xpl.h"
 
 static int dx_size;		/* Number of entries in descriptor index array */
@@ -142,7 +140,8 @@ compactify(void)
 			addr = (XPL_ADDRESS) descriptor[dx[i]]._Address;
 			if (addr > tc) {
 				if (delta) {
-					memmove((void *) (bc - delta), (void *) bc, tc - bc);
+					memmove((void *) (bc - delta),
+						(void *) bc, (size_t)(tc - bc));
 				}
 				freepoint = freepoint + tc - bc;
 				delta = (bc = addr) - freepoint;
@@ -154,7 +153,8 @@ compactify(void)
 			}
 		}
 		if (delta) {
-			memmove((void *) (bc - delta), (void *) bc, tc - bc);
+			memmove((void *) (bc - delta), (void *) bc,
+				(size_t)(tc - bc));
 		}
 		freepoint = freepoint + tc - bc;
 		if (lower_bound == freebase) {
@@ -264,11 +264,11 @@ __xpl_move_to_top(__xpl_string *outstr, __xpl_string *str)
 		outstr->_Address = str->_Address;
 		return outstr;
 	}
-	if (str->_Length >= freelimit - freepoint) {
+	if ((XPL_ADDRESS) str->_Length >= freelimit - freepoint) {
 		space_needed = str->_Length;
 		compactify();
 	}
-	memmove((void *) (freepoint), str->_Address, str->_Length);
+	memmove((void *) (freepoint), str->_Address, (size_t) str->_Length);
 	outstr->_Length = str->_Length;
 	outstr->_Address = (char *) freepoint;
 	freepoint += str->_Length;
@@ -336,7 +336,8 @@ __xpl_cat(__xpl_string *outstr, __xpl_string *left, __xpl_string *right)
 		outstr->_Address = left->_Address;
 		return outstr;
 	}
-	if (left->_Length + right->_Length >= freelimit - freepoint) {
+	if ((XPL_ADDRESS) (left->_Length + right->_Length) >=
+			freelimit - freepoint) {
 		space_needed = left->_Length + right->_Length;
 		compactify();
 	}
@@ -533,7 +534,7 @@ __xpl_x2c_string(__xpl_string *str)
 {
 	__xpl_string *s;
 
-	if (freelimit - freepoint < str->_Length + 1) {
+	if (freelimit - freepoint < (XPL_ADDRESS) str->_Length + 1) {
 		/* Compress if it won't fit */
 		space_needed = str->_Length + 1;
 		compactify();
@@ -582,41 +583,4 @@ void
 __xpl_abort(void)
 {
 	abort();
-}
-
-/*
-**	__xpl_date()
-**
-**	Return the date as (day_of_year + 1000 * (year - 1900))
-*/
-int
-__xpl_date(void)
-{
-	time_t unixtime;
-	struct tm *now;
-
-	time(&unixtime);
-	now = localtime(&unixtime);
-
-	return ((now->tm_yday + 1) + (1000 * now->tm_year));
-}
-
-/*
-**	__xpl_time()
-**
-**	Return the time in centiseconds since midnight
-*/
-int
-__xpl_time(void)
-{
-	struct tm *now;
-	struct timeval tv;
-	time_t sec;
-
-	gettimeofday(&tv, (void *) 0);
-	sec = (time_t) tv.tv_sec;
-	now = localtime(&sec);
-	sec = ((now->tm_hour * 60) + now->tm_min) * 60 + now->tm_sec;
-
-	return (tv.tv_usec / 10000) + sec * 100;
 }
