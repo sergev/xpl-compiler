@@ -1,0 +1,53 @@
+
+2018/3/16 Release 0.6 changes.
+
+1) Added xformat program to reformat XPL source code.
+2) Added xxref program to produce a cross reference of XPL programs.
+3) Port to DJGPP on DOS.  This is supported with new makefiles.
+4) Added the builtin variable input_record_limit to limit the size of the
+   strings returned by INPUT().  This is useful for reading input records
+   that are not terminated with <newline>.
+5) Allow more than 255 entries in a case statement.
+6) Report DO/END label errors.  This will help catch missing END statements.
+7) Allow the buffer array used with FILE() to be indexed.
+
+2018/1/10 Release 0.5 changes.
+
+1) New library functions: xfdopen, xio_get_flags, xio_get_flags.
+2) Fix a C compiler warning with the xfprintf function on the unit parameter.
+3) Many of the XPL builtin functions and variables are now mapped to allow the
+   names to be used as EXTERNAL procedures.
+4) Fix large constants to append L or LL as necessary.
+5) Fix short formats without arguments for xprintf, xfprintf and xsprintf.
+6) Remove trace and untrace from the runtime.  They are now handled in the
+   compiler.
+7) Put string constants in Read/Write memory if they were declared with INITIAL
+   statements.
+8) Announce the compiler before printing Usage.
+9) Add XPL_EOF as an EOF indicator used by xerrno.
+10) Add a title to the symbol table dump.
+11) Standardize the error numbers returned by the runtime.
+12) Portability changes to the makefiles.
+13) Fix ticket #6.  The compiler will now assign the iteration variable
+    after evaluating the TO and BY expressions.
+14) Fix Ticket #5.  Hex constants at the end of a C compatible string.
+15) Once the -I option is turned on, do not allow it to be turned off.
+16) Describe the -G option as a cross compile option.
+17) Do not allow margin chop to be used on the command line.
+18) Corrected the list of reserved words for C99 and C11.
+19) The input builtin function will now accept any of the following as a
+    newline: <cr>, <lf>, <cr><lf>, <lf><cr>.
+
+2017/12/16 Release 0.4 changes.
+
+1) New library functions: xunlink(), xrewind() and xmkstemp()
+2) New keyword EXTERNAL.  Add the ability to define function prototypes
+   for external functions.
+3) New keyword TRANSPARENT.  Similar to the keyword EXTERNAL but is
+   intended to be used with C include files.
+4) Add CORELONGWORD() to access 64-bit memory objects.
+5) Enhancements to the INLINE() function.
+6) The XPL variable errno was changed to xerrno to allow programs to
+   access the C variable errno.
+7) Many additions to the documentation.
+

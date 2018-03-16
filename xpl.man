@@ -1,9 +1,9 @@
-.TH "XPL" "1" "June 6, 2017" "xpl 0\&.1"
+.TH "XPL" "1" "Jan 10, 2018" "xpl 0\&.2"
 .SH "NAME"
 xpl \- XPL to C source translator
 .SH SYNOPSIS
 .B xpl
-[\-DGILmMPSTUWX] [\-v number] [\-o outfile] [\-s stringfile] file
+[\-DGHIKLmMSTUWXY] [\-v number] [\-o outfile] [\-s stringfile] file
 .SH DESCRIPTION
 .B xpl
 compiles an XPL program.
@@ -37,7 +37,7 @@ Uppercase letters set initial values for compiler toggles
 .br
 D - Dump stats at the end of compilation
 .br
-G - 32 bit machine (2 Gig address space)
+G - Cross compile from a 64-bit machine to a 32-bit machine
 .br
 H - Hide identifiers from the C compiler
 .br

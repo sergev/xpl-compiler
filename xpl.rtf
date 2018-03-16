@@ -18,7 +18,7 @@ Daniel Weaver\
 \pard\tx220\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li720\fi-720\pardirnatural\partightenfactor0
 \ls1\ilvl0\cf0 1.		Introduction\cf2 \cb3 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li721\fi-722\ri0\pardirnatural\partightenfactor0
-\cf2 \cb3 \
+\cf2 \
 	      \CocoaLigature0 XPL is a dialect of PL/I created by W. M. McKeeman et. al. and described in his book \ul A Compiler Generator\ulnone .  XPL was designed to be used in table-driven syntax-directed translators such as the XPL compiler itself.  The XPL system, which includes the compiler, SKELETON, and ANALYZER, provides a quick and efficient method for defining a language.  If a BNF (BACKUS-NAUR FORM) description of a computer language is input to the ANALYZER, it generates the syntax tables used in either SKELETON or the XPL compiler.  The syntax tables along with SKELETON form a syntax checker for your BNF grammar. Code emitters may be added to upgrade the syntax checker to a compiler.\
 \
 1.1	Source Translation\
@@ -259,10 +259,12 @@ Daniel Weaver\
 \b declare (i, j, k) bit(32);
 \b0 \
 	      Declaration statements may be grouped to add readability to the program, or you may group them because you dislike to type the word DECLARE over and over again.  The following statement shows a glob of declarations bunched together for aesthetic reasons.\
-		
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li2163\fi-2165\ri0\pardirnatural\partightenfactor0
+\cf2 		
 \b declare any_identifier bit(16), and_receive_a_free character, string bit(8);
 \b0 \
-	      When you get tired of declaring scalar variables try arrays.  An array is a contiguous block of memory that is referenced by only one identifier followed by a subscript.  Arrays in XPL start at subscript zero, therefore when allocating arrays, use one less than the number of elements that you actually need.  FORTRAN programmers who think that starting an array reference at zero is inconvenient have three choices. 1) Throw the zeroth element away, 2) Go back to FORTRAN (we didn't want you any way) 3) Learn to count starting from zero.  The following example shows an array of HOPE.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li721\fi-722\ri0\pardirnatural\partightenfactor0
+\cf2 	      When you get tired of declaring scalar variables try arrays.  An array is a contiguous block of memory that is referenced by only one identifier followed by a subscript.  Arrays in XPL start at subscript zero, therefore when allocating arrays, use one less than the number of elements that you actually need.  FORTRAN programmers who think that starting an array reference at zero is inconvenient have three choices. 1) Throw the zeroth element away, 2) Go back to FORTRAN (we didn't want you any way) 3) Learn to count starting from zero.  The following example shows an array of HOPE.\
 		
 \b declare hope(255) bit(16);
 \b0 \
@@ -502,13 +504,12 @@ Daniel Weaver\
 			if (__xpl_runtime_init(0)) return 1;\
 			__xpl_init_strings();\
 \
-			/* Call any XPL function or procedure with the name used\
-			in the XPL code. */\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li2875\fi-2877\ri0\pardirnatural\partightenfactor0
+\cf2 			/* Call any XPL function or procedure with the name used in the XPL code. */\
 			xpl_code();\
-			/* Be careful when naming the XPL functions.  Choose an\
-			<identifier> that is legal in both languages.  i.e. Don\'92t\
-			define a function like build#value. */\
-			return 0;\
+			/* Be careful when naming the XPL functions.  Choose an <identifier> that is legal in both languages.  i.e. Don\'92t	define a function like build#value. */\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li721\fi-722\ri0\pardirnatural\partightenfactor0
+\cf2 			return 0;\
  		\}
 \b0 \
 \
@@ -631,9 +632,11 @@ Daniel Weaver\
 			call it;\
 			y, z = 4;\
 		end;\
-		/* The above loop is executed 6 times x=10 x=12 x=14 x=16 x=18 x=20 */
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li2147\fi-2149\ri0\pardirnatural\partightenfactor0
+\cf2 		/* The above loop is executed 6 times x=10 x=12 x=14 x=16 x=18 x=20 */
 \b0 \
-\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li721\fi-722\ri0\pardirnatural\partightenfactor0
+\cf2 \
 5.5	GO TO\
 
 \f1\b \
@@ -678,7 +681,7 @@ Daniel Weaver\
 	       | mod <primary>
 \f0\b0 \
 \
-	     The carrot (^) may be used instead of a tilde (~).\
+	     The caret (^) may be used instead of a tilde (~).\
 \
 6.1	Operator Precedence\
 \
@@ -861,6 +864,9 @@ Appendix A --- Compiler Options --- \
 	Other dollar options that may be used in PL/I style comments.\
 \
 	$|		Margin chop.  This option may not be used on the command line because the position of the | is used to tell the compiler where to stop scanning text.  All text to the right of the vertical bar | is ignored.  This is used to sequence your card deck.\
+\
+	Using the C preprocessor\
+ 			The C preprocessor may be used to preprocess XPL source code.  The XPL compiler correctly handles the line markers generated by the C preprocessor.\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li721\fi-722\ri0\pardirnatural\partightenfactor0
 \cf2 \
 Appendix B --- Built-in Functions --- \
@@ -1060,7 +1066,8 @@ Appendix B --- Built-in Functions --- \
 	\
 			     The inline function may be used to access C header files.  The following code will access the socket library from XPL code.\
 \
-				
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li3624\fi-3627\ri0\pardirnatural\partightenfactor0
+\cf2 				
 \b call inline('#include <sys/socket.h>');\
 				call inline('#include <netinet/in.h>');\
 				call inline('struct sockaddr_in server;');\
@@ -1074,22 +1081,25 @@ Appendix B --- Built-in Functions --- \
 \
 				inline('server.sin_family') = AF_INET;
 \b0 \
-\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li2150\fi-2152\ri0\pardirnatural\partightenfactor0
+\cf2 \
 			    The inline function may be used to insert or remove casts from a statement as is done by this example:\
 \
 				
 \b call inline('#include <string.h>');\
 \
 				strchr: procedure(s, c) address transparent;\
-				   declare s address, c fixed;\
+				       declare s address, c fixed;\
 				   end strchr;\
 \
 				declare result address;\
 				declare string character(80);\
 \
-				result = inline('(XPL_ADDRESS)', strchr(inline(string), byte('?')));
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li3584\fi-3587\ri0\pardirnatural\partightenfactor0
+\cf2 				result = inline('(XPL_ADDRESS)', strchr(inline(string), byte('?')));
 \b0 \
-\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li2150\fi-2152\ri0\pardirnatural\partightenfactor0
+\cf2 \
 			    The 
 \b strchr()
 \b0  call generates the following line:\
@@ -1128,6 +1138,10 @@ Appendix B --- Built-in Functions --- \
 \b input(0)
 \b0 \
 \
+	input_record_limit	A BIT(32) variable that holds the maximum record size returned by the 
+\b input
+\b0  builtin function.  This is useful for reading records that are not terminated with a newline character.  The default is 1024.\
+\
 	length(string)	A function that will return the length of a character string.  See also 
 \b saddr()
 \b0 .\
@@ -1144,10 +1158,12 @@ Appendix B --- Built-in Functions --- \
 \b xfopen
 \b0 .  Examples:\
 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li3596\fi-3599\ri0\pardirnatural\partightenfactor0
 
-\b 				output(0) = 'Hello World!';
+\b \cf2 				output(0) = 'Hello World!';
 \b0 	/* You were expecting this.  Right? */\
-				
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li2150\fi-2152\ri0\pardirnatural\partightenfactor0
+\cf2 				
 \b output(1) = 'Major error detected.';
 \b0 \
 \
@@ -1319,7 +1335,9 @@ Appendix B --- Built-in Functions --- \
 
 \b0 	xfprintf(unit, format, args, \'85)	A print function that works similar to the 
 \b fprintf()
-\b0  function in the C programming language.  This function returns the number of characters printed.  The unit may be opened with the 
+\b0  function in the C programming language.  This function returns the number of characters printed.  The 
+\b unit
+\b0  may be opened with the 
 \b xfopen
 \b0  function call.  Example:\
 \
@@ -1329,6 +1347,8 @@ Appendix B --- Built-in Functions --- \
 			call xfprintf(unit, "(c) I am %d years old today.\\n", age);\
 
 \b0 \
+			See Appendix D for a description of the format string.\
+\
 	xio_get_flags(unit)    Return the I/O flags for the specified 
 \b unit
 \b0 .  The current implementation only defines one flag bit.\
@@ -1346,7 +1366,9 @@ Appendix B --- Built-in Functions --- \
 \b unit
 \b0  is out of range the function returns -1 and sets 
 \b xerrno
-\b0  to EBADF.  See 
+\b0  to EBADF.  The 
+\b value
+\b0  is a BIT(32) variable.  See 
 \b xio_get_flags
 \b0  for a definition of the flag bits.\
 \
@@ -1392,6 +1414,8 @@ Appendix B --- Built-in Functions --- \
 			call xprintf("(c) I am %d years old today.\\n", age);\
 
 \b0 \
+			See Appendix D for a description of the format string.\
+\
 	xrewind(unit)    Rewind an I/O stream.  This function will position the file back to the beginning.  Example:\
 \
 			
@@ -1424,12 +1448,15 @@ Appendix B --- Built-in Functions --- \
 			declare string character;\
 			declare text character(80);\
 \
-			call xsprintf(string, 'Help me %s.  You''re my only hope.',  'Obi Wan');\
+			call xsprintf(string, 'Help me %s.  You''re my only hope.', \
+				'Obi Wan');\
 			call xsprintf(text, 'string="%s", age=%3.2d', string, age);\
 \
 			/* The buffer is cleared at the beginning of the function call.  */\
 
 \b0 \
+			See Appendix D for a description of the format string.\
+\
 	xunlink(filename)    Delete a file.  This function calls the 
 \b unlink()
 \b0  function from the C library.  
@@ -1541,8 +1568,10 @@ Appendix D --- Format strings ---\
 	+	Positive signed integers should be proceeded by a plus sign.\
 	-	Left justify\
 	<sp>	Space.  Numbers should be proceeded by a space.  Ignored if + is used.\
-	#	Prefix octal, hex (lower case) and hex (upper case) with 0, 0x and 0X respectively.\
-	0	Zero fill.  Ignored if left justify.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li1422\fi-1424\ri0\pardirnatural\partightenfactor0
+\cf2 	#	Prefix octal, hex (lower case) and hex (upper case) with 0, 0x and 0X respectively.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li721\fi-722\ri0\pardirnatural\partightenfactor0
+\cf2 	0	Zero fill.  Ignored if left justify.\
 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li2150\fi-2152\ri0\pardirnatural\partightenfactor0
 \cf2 	width		Is the field width.  This is a decimal number or a *.  If a * then the next argument is used as the width.  The argument should be a BIT(32) value.  If the width is smaller than the converted string value then the width is ignored.\
@@ -1568,7 +1597,8 @@ Appendix D --- Format strings ---\
 			s	Character string\
 			p	Address as returned by the ADDR() function\
 			c	A single character\
-			n	Returns the number of characters written so far.  The argument must be an address that points to a BIT(32) integer.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li2882\fi-2885\ri0\pardirnatural\partightenfactor0
+\cf2 			n	Returns the number of characters written so far.  The argument must be an address that points to a BIT(32) integer.\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li721\fi-722\ri0\pardirnatural\partightenfactor0
 \cf2 \
 Appendix E --- BNF ---\
