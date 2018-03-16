@@ -359,7 +359,7 @@ int sizeof_long;	/* Set to the sizeof(XPL_LONG) or 4 if control['G'] */
 /* Each of the following contains the index into v() of the corresponding
 	symbol.   We ask:    IF token = ident_token    etc.    */
 int ident_token, string_token, number_token, divide_token, eof_token;
-int or_token, concatenate_token;
+int or_token, concatenate_token, label_definition;
 
 int line_symbol;	/* Index into the symbol table for the __LINE__ macro */
 int address_symbol;	/* Index into the symbol table for the address macro */
@@ -744,6 +744,7 @@ struct builtin_s builtin[] = {
 	{FIXEDTYPE, 0, 0, BIF_MAP, STR("date_of_generation")},
 	{FIXEDTYPE, 0, 0, 0, STR("ndescript")},
 	{CHRTYPE, 0, 1, 0, STR("descriptor")},
+	{FIXEDTYPE, 0, 0, 0, STR("input_record_limit")},
 	{ADDRESS_TYPE, 0, 0, 0, STR("file_record_size")},
 	{ADDRESS_TYPE, 0, 0, 0, STR("freebase")},
 	{ADDRESS_TYPE, 0, 0, 0, STR("freelimit")},
@@ -817,7 +818,7 @@ struct builtin_s builtin[] = {
 unsigned char parse_stack[cSTACKSIZE]; /* Tokens of the partially parsed text */
 unsigned char ps_type[cSTACKSIZE]; /* Operand type for expressions */
 unsigned char ps_code[cSTACKSIZE]; /* Operand Code */
-unsigned char ps_cnt[cSTACKSIZE]; /* Any count, parameters, subscripts... */
+short ps_cnt[cSTACKSIZE]; /* Any count, parameters, subscripts... */
 XPL_LONG ps_value[cSTACKSIZE]; /* holds number_value */
 int ps_line[cSTACKSIZE]; /* holds card_count */
 short ps_symtab[cSTACKSIZE]; /* Symbol table pointer */
@@ -2770,7 +2771,7 @@ upper_case_macro(char *name)
 {
 	STRING *upper_case_macro_text, *upper_case_macro_string;
 	int i;
-	char data[32];
+	char data[64];
 
 	for (i = 0; i < sizeof(data) - 1; i++) {
 		if (name[i]) {
@@ -2780,6 +2781,10 @@ upper_case_macro(char *name)
 		}
 	}
 	data[i] = '\0';
+	if (strcmp(name, data) == 0) {
+		/* Name is upercase.  e.g. XPL_EOF */
+		return;
+	}
 	upper_case_macro_text = get_temp_descriptor();
 	upper_case_macro_string = get_temp_descriptor();
 	enter_macro(MOVE_TO_TOP(upper_case_macro_text,
@@ -3553,7 +3558,8 @@ file_builtin(int f, int b)
 	}
 	file_builtin_text = get_temp_descriptor();
 	sym = ps_symtab[b];
-	CAT(file_builtin_text, &ps_text(f), &syt_mapped(sym));
+	CAT(file_builtin_text, &ps_text(f), &ampersand);
+	CAT(file_builtin_text, file_builtin_text, &ps_text(b));
 	CAT(file_builtin_text, file_builtin_text, &comma_long_sizeof);
 	CAT(file_builtin_text, file_builtin_text, &syt_mapped(sym));
 	CAT(&ps_text(f), file_builtin_text, &close_close);
@@ -4345,7 +4351,8 @@ initialize(void)
 		} else
 		if (strcasecmp(s, ";") == 0) stopit[i] = TRUE;  else
 		if (strcasecmp(s, "|") == 0) or_token = i; else
-		if (strcasecmp(s, "||") == 0) concatenate_token = i;
+		if (strcasecmp(s, "||") == 0) concatenate_token = i;  else
+		if (strcasecmp(s, "<label definition>") == 0) label_definition = i;
 	}
 	stopit[do_token] = TRUE;
 	stopit[end_token] = TRUE;
@@ -4994,6 +5001,21 @@ synthesize(int production_number)
 		}
 		nest_block--;
 		emit_code(&close_brace, ps_line[sp]);
+		if (ps_name(sp)._Length > 0) {
+			static STRING ending = STR("END ");
+			static STRING does_not_match = STR(" does not match DO label");
+
+			CAT(synthesize_string, &ending, &ps_name(sp));
+			CAT(synthesize_string, synthesize_string, &does_not_match);
+			if (parse_stack[mp - 1] != label_definition) {
+				/* This should catch missing END statements */
+				error(synthesize_string, __LINE__, 0);
+			} else
+			if (COMPARE(&ps_name(mp - 1), &ps_name(sp)) != 0) {
+				/* do_label: do; end end_label; */
+				error(synthesize_string, __LINE__, 0);
+			}
+		}
 		break;
 	case PN_GROUP_HEAD_1:
 		/*  <group head> ::= do ;    */
@@ -6458,7 +6480,7 @@ static void
 reduce(void)
 {
 	static STRING no_production = STR("No production is applicable");
-	int i, j, prd;
+	int i, j = 0, prd;
 
 	/* Pack the top four tokens on the parse stack into one word (j)  */
 	for (i = sp - 4; i < sp; i++) {
@@ -6607,7 +6629,7 @@ main(int argv, char **argc)
 	int i, j, k, show_usage = 0;
 	char *kp;
 
-	printf("XPL to C language translator -- version 0.5\n");
+	printf("XPL to C language translator -- version 0.6\n");
 
 	argv_limit = 32;
 	temp_descriptor = DESCRIPTOR_STACK;

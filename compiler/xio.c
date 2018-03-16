@@ -24,6 +24,7 @@ int __xpl_FILE_flags[__XPL_FILE_MAX];
 char __xpl_FILE_eol[__XPL_FILE_MAX];
 int __xpl_xerrno;
 XPL_ADDRESS file_record_size;	/* Max record size for builtin function FILE() */
+int input_record_limit = {1024};  /* Max record size for input function */
 
 /*
 **	__xpl_io_init()
@@ -117,8 +118,8 @@ __xpl_input(__xpl_string *outstr, int num)
 	outstr->_Address = cp;
 	sz = freelimit - freepoint;
 	/* Really big reads clog up the free string area */
-	if (sz > 1024) {
-		sz = 1024;
+	if (sz > input_record_limit) {
+		sz = input_record_limit;
 	}
 	for (i = 0; i < sz; i++) {
 		chr = getc(__xpl_FILE_in[num]);
@@ -271,7 +272,8 @@ int
 __xpl_read_file(int unit, int rec, void *buffer, unsigned long rec_size)
 {
 	FILE *fp;
-	int val;
+	off_t val;
+	ssize_t wc;
 
 	if (unit < 0 || unit >= __XPL_FILE_MAX) {
 		__xpl_xerrno = EBADF;
@@ -287,12 +289,12 @@ __xpl_read_file(int unit, int rec, void *buffer, unsigned long rec_size)
 			__xpl_xerrno = errno;
 			return -1;
 		}
-		val = read(fileno(fp), buffer, (size_t) rec_size);
-		if (val < 0) {
+		wc = read(fileno(fp), buffer, (size_t) rec_size);
+		if (wc < 0) {
 			__xpl_xerrno = errno;
 			return -1;
 		}
-		return val;
+		return 0;
 	}
 	__xpl_xerrno = ENODEV;
 	return -1;
@@ -308,7 +310,8 @@ int
 __xpl_write_file(int unit, int rec, void *buffer, unsigned long rec_size)
 {
 	FILE *fp;
-	int val;
+	off_t val;
+	ssize_t wc;
 
 	if (unit < 0 || unit >= __XPL_FILE_MAX) {
 		__xpl_xerrno = EBADF;
@@ -324,12 +327,12 @@ __xpl_write_file(int unit, int rec, void *buffer, unsigned long rec_size)
 			__xpl_xerrno = errno;
 			return -1;
 		}
-		val = write(fileno(fp), buffer, (size_t) rec_size);
-		if (val < 0) {
+		wc = write(fileno(fp), buffer, (size_t) rec_size);
+		if (wc < 0) {
 			__xpl_xerrno = errno;
 			return -1;
 		}
-		return val;
+		return 0;
 	}
 	__xpl_xerrno = ENODEV;
 	return -1;

@@ -1,0 +1,72 @@
+#==========================================================================
+#
+#	XPL makefile for 16-bit DOS using DJGPP
+#	This makefile is for GNU make
+#	DJGPP gcc version 4.7.1 (generates 32-bit code)
+#
+#==========================================================================
+# To run under FreeDOS 1.2
+#	set PATH=C:\DEVEL\DJGPP\BIN;%path%
+#	set DJGPP=C:\DEVEL\DJGPP\DJGPP.ENV
+#	make -f makefile.dj
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# Path variables and compiler options
+#------------------------------------------------------------------------------
+
+OBJDIR = ..
+TARGET = xpl
+LIBXPL = lib$(TARGET).a
+
+CFLAGS  = -I.
+LDLIBS	= $(LIBXPL)
+
+#------------------------------------------------------------------------------
+# Files
+#------------------------------------------------------------------------------
+
+OBJS=xcom.o
+
+LIBOBJS=xplrt.o unique.o expand.o xio.o hex.o chrfixed.o\
+	xprintf.o xunlink.o xrewind.o xmkstemp.o xfdopen.o\
+	xflags.o datetime.o
+
+#------------------------------------------------------------------------------
+# Default target
+#------------------------------------------------------------------------------
+
+all:	$(TARGET).exe
+	@copy /b $(TARGET).exe $(OBJDIR)
+	@copy /b $(LIBXPL) $(OBJDIR)
+	@copy xpl.h $(OBJDIR)
+
+#------------------------------------------------------------------------------
+# Build the application image
+#------------------------------------------------------------------------------
+
+$(LIBXPL): $(LIBOBJS)
+	@del $(LIBXPL)
+	$(AR) -cq $(LIBXPL) $(LIBOBJS)
+
+$(TARGET).exe: $(LIBXPL) $(OBJS)
+	$(LINK.o) $(OBJS) $(LDLIBS) -o $(TARGET).exe
+
+#------------------------------------------------------------------------------
+# cleanup
+#------------------------------------------------------------------------------
+
+clean:
+	@del *.o
+	@del $(LIBXPL)
+	@del $(TARGET).exe
+
+#------------------------------------------------------------------------------
+# misc stuff
+#------------------------------------------------------------------------------
+
+info:
+	@echo CC=$(COMPILE.c)
+	@echo LD=$(LINK.o)
+	@echo LDLIBS=$(LDLIBS)
+

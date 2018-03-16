@@ -91,7 +91,7 @@ int __xpl_xfclose(int unit);
 int __xpl_xfdopen(int fd, __xpl_string *mode);
 __xpl_string *__xpl_output(int num, __xpl_string *str);
 __xpl_string *__xpl_input(__xpl_string *outstr, int num);
-int __xpl_xprintf(int, void *ref, __xpl_string *xfmt, ...);
+int __xpl_xprintf(int f, void *ref, __xpl_string *xfmt, ...);
 int __xpl_xunlink(__xpl_string *file);
 int __xpl_xrewind(int unit);
 int __xpl_xmkstemp(__xpl_string *file, __xpl_string *mode);
@@ -123,6 +123,7 @@ __xpl_string *__xpl_unique(__xpl_string *str);
 int __xpl_read_file(int num, int rec, void *buffer, unsigned long rec_size);
 int __xpl_write_file(int num, int rec, void *buffer, unsigned long rec_size);
 extern XPL_ADDRESS file_record_size;	/* Max record size for builtin function FILE() */
+extern int input_record_limit;	/* Max record size for the input function */
 
 __xpl_string *__xplrt_hex(__xpl_string *outstr, XPL_LONG number);
 __xpl_string *__xpl_hex(XPL_LONG number);
