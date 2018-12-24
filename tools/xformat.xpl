@@ -11,6 +11,7 @@ declare alpha(255) bit(8);      /* TRUE if upper or lower case alphabetic */
 declare buffer character;       /* Input buffer */
 declare scan_state fixed;       /* input_scanner state */
 declare margin_chop fixed;      /* Margin control from dollar | */
+declare line_count fixed;       /* Count the number of input lines */
 
 declare cp fixed;
 
@@ -21,7 +22,9 @@ declare tab_width fixed initial(8);
 declare output_tab fixed initial(8);
 declare indent_width fixed initial(3);
 declare comment_space fixed initial(2);
+declare comment_start fixed initial(0);
 declare line_limit fixed initial(4096);
+declare length_warning fixed initial(4096);
 
 declare source_unit fixed;      /* Input unit number */
 declare output_unit fixed;      /* Output unit number */
@@ -261,6 +264,7 @@ procedure;
     if scan_state = LINE_COMMENT_STATE then
         scan_state = NORMAL_STATE;
     buffer = input(source_unit);
+    line_count = line_count + 1;
     if margin_chop > 0 & margin_chop < length(buffer) then do;
             /* margin control from dollar | */
             buffer = substr(buffer, 0, margin_chop);
@@ -402,11 +406,15 @@ end initialize;
 /*
 **	Align the start of a comment
 **
-**	Implements: -C, -c<number> and -m<number>
+**	Implements: -C, -c<number>, -m<number> and -n<number>
 */
 align_comments: procedure(ll, n);
     declare (ll, n, b) fixed;
 
+    if n = 1 & comment_start > 0 then do;
+            if blanks(1) < comment_start then
+                blanks(1) = comment_start;
+        end;  else
     if control(byte('C')) then do;
             /* Comments have a Fixed position */
             if ll >= comment_column(n) then blanks(n) = 0;
@@ -555,7 +563,7 @@ normal_spacing: procedure(n);
         end;
     if tyn = byte(',') then do;
             blanks(n) = 0;
-            blanks(n + 1) = 1;
+            if blanks(n + 1) < 1 then blanks(n + 1) = 1;
             return;
         end;
     if tyn = byte(')') then do;
@@ -756,7 +764,12 @@ process: procedure;
                 if j - line_limit < i then
                     line = substr(line, j - line_limit);
                 else line = substr(line, i);
+                j = expand_length(line);
             end;
+        if j > length_warning then do;
+            output(1) = line_count || '  ' || line;
+            output(1) = 'Text exceeds warning threshold.';
+        end;
         if output_tab > 1 & indent_state = NORMAL_STATE then do;
                 declare tabs character;
 
@@ -816,8 +829,10 @@ procedure;
     output(1) = '   c<number>  Comment indent multiple (0->indent width)';
     output(1) = '   i<number>  Indent width (default 3)';
     output(1) = '   l<number>  Line limit (default 4096)';
-    output(1) = '   m<number>  Mininum number of spaces before a comment not in column one (default 2)';
+    output(1) = '   m<number>  Minimum number of spaces before a comment not in column one (default 2)';
+    output(1) = '   n<number>  Minimum number of spaces before a comment that starts a line (default 0)';
     output(1) = '   t<number>  Input TAB width (default 8)';
+    output(1) = '   w<number>  Print a warning if the line exceeds this length (default 4096)';
     output(1) = '   T<number>  Output TAB width (default 8).  Use zero for no output TABs';
     output(1) = 'Control toggles in the target program:';
     output(1) = '   F          Disable formatting';
@@ -867,9 +882,15 @@ do i = 1 to argc - 1;
             if j = byte('m') then do;
                     comment_space = numeric_option(substr(argv(i), cp + 1));
                 end;  else
+            if j = byte('n') then do;
+                    comment_start = numeric_option(substr(argv(i), cp + 1));
+                end;  else
             if j = byte('t') then do;
                     tab_width = numeric_option(substr(argv(i), cp + 1));
                     if tab_width <= 0 then tab_width = 1;
+                end;  else
+            if j = byte('w') then do;
+                    length_warning = numeric_option(substr(argv(i), cp + 1));
                 end;  else
             if j = byte('T') then do;
                     output_tab = numeric_option(substr(argv(i), cp + 1));
