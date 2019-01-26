@@ -1668,7 +1668,7 @@ next_temp(void)
 /*
 **	temp_name(outstr, id, extra)
 **
-**	When (extra == 1) outstr->_Address may be used in a C string
+**	When (extra == 1) outstr->_Address may be used in C string
 **	functions such as printf().
 **
 **	Return the temporary variable name as a string.
@@ -3233,7 +3233,7 @@ set_type_of_constant(int p)
 **	forceaccumulator(int p, int target_type, int paren)
 **
 **	paren is set TRUE if MOPAR needs to add parentheses.
-**	Traget_type is used for high order truncation of constants.
+**	Target_type is used for high order truncation of constants.
 **
 **	Force the object at p into the ps_text[] string array.
 */
@@ -6629,7 +6629,7 @@ main(int argv, char **argc)
 	int i, j, k, show_usage = 0;
 	char *kp;
 
-	printf("XPL to C language translator -- version 0.6\n");
+	printf("XPL to C language translator -- version 0.7\n");
 
 	argv_limit = 32;
 	temp_descriptor = DESCRIPTOR_STACK;
