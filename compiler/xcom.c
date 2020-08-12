@@ -2551,7 +2551,10 @@ enter(STRING *name, int type, int location, int line)
 				/* Define a goto label previously declared */
 				syt_type[i] = type;
 			} else
-			if (procmark + parct < i) {
+			if (procmark <= i && k == UNDEF_ARG) {
+				/* These will be defined in tdeclare() */;
+			} else
+			if (procmark <= i) {
 				enter_text = get_temp_descriptor();
 				CAT(enter_text, &duplicate, name);
 				CAT(enter_text, enter_text, &on_line);
