@@ -4893,6 +4893,8 @@ synthesize(int production_number)
 			emit_code(&ps_text(sp), ps_line[sp]);
 			ps_text(sp)._Length = 0;
 		}
+		/* Ignore returns in IF statements */
+		return_statement = -1;
 		break;
 	case PN_BASIC_STATEMENT_1:
 		/*  <basic statement> ::= <assignment> ;    */
