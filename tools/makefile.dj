@@ -17,7 +17,7 @@
 
 XPLDIR = ..
 XPL = $(XPLDIR)\xpl
-TARGETS = xformat.exe xxref.exe
+TARGETS = xformat.exe xtags.exe xxref.exe
 LIBXPL = $(XPLDIR)\libxpl.a
 
 CFLAGS  = -I. -I$(XPLDIR)
@@ -39,6 +39,7 @@ LDLIBS	= $(LIBXPL)
 
 all:	$(TARGETS)
 	copy xformat.exe $(XPLDIR)
+	copy xtags.exe $(XPLDIR)
 	copy xxref.exe $(XPLDIR)
 
 #------------------------------------------------------------------------------
@@ -48,6 +49,10 @@ all:	$(TARGETS)
 xformat.c:	xformat.xpl
 xformat.o:	xformat.c
 xformat.exe:	xformat.o
+
+xtags.c:	xtags.xpl
+xtags.o:	xtags.c
+xtags.exe:	xtags.o
 
 xxref.c:	xxref.xpl
 xxref.o:	xxref.c
@@ -61,6 +66,7 @@ clean:
 	@del *.o
 	@del *.c
 	@del *.xh
+	@del xtags.exe
 	@del xxref.exe
 	@del xformat.exe
 
