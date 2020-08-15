@@ -22,8 +22,6 @@
 int
 __xpl_xrewind(int unit)
 {
-	int result;
-
 	if (unit < 0 || unit >= __XPL_FILE_MAX) {
 		fprintf(stderr, "Unit number out of range: %d.\n", unit);
 		__xpl_xerrno = EBADF;
@@ -34,12 +32,9 @@ __xpl_xrewind(int unit)
 		__xpl_xerrno = ENODEV;
 		return -1;
 	}
+	fflush(__xpl_FILE_out[unit]);
+	rewind(__xpl_FILE_out[unit]);
 	__xpl_FILE_eol[unit] = 0;
-	result = fseek(__xpl_FILE_out[unit], 0L, SEEK_SET);
-	if (result != 0) {
-		__xpl_xerrno = errno;
-		return result;
-	}
 	__xpl_xerrno = 0;
 	return 0;
 }
