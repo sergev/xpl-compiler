@@ -664,6 +664,8 @@ procedure;
     end;
     chartype(byte('/')) = 6;
     chartype(byte(stroke)) = 2;
+    chartype(byte('^')) = chartype(byte('~'));
+    tx(byte('^')) = tx(byte('~'));
 
     do i = 0 to 255;
         bucket(i) = NULL;
