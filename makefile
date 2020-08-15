@@ -14,5 +14,5 @@ clean:
 	$(MAKE) $(MFLAGS) -C compiler clean
 	$(MAKE) $(MFLAGS) -C tws clean
 	$(MAKE) $(MFLAGS) -C tools clean
-	rm -f xpl xpl.h libxpl.a xformat xxref
+	rm -f xpl xpl.h libxpl.a xformat xtags xxref
 
