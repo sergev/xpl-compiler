@@ -454,7 +454,7 @@ Daniel Weaver\
 \b procedure options(main)
 \b0 .  
 \b main
-\b0  is not a reserved word in XPL.  This is a simple XPL program that calls a subroutine which happens to named 
+\b0  is not a reserved word in XPL.  This is a simple XPL program that calls a subroutine which happens to be named 
 \b main
 \b0 .\
 \
@@ -787,7 +787,7 @@ Daniel Weaver\
 \
 	7) XPL69 allows control to reach the end of a non-void function.  In the original compiler it returned a random value.  This XPL compiler will return zero.\
 \
-	8) String constants are stored in READ-ONLY memory.  Some C compilers have an option that will put the string constants in READ/WRITE memory.  The C compiler on a MAC will put the strings in READ/WRITE memory by using this option -fwritable-strings option.\
+	8) String constants are stored in READ-ONLY memory.  Some C compilers have an option that will put the string constants in READ/WRITE memory.  The C compiler on a MAC will put the strings in READ/WRITE memory by using the -fwritable-strings option.\
 \
 	9) Some variables declared within a procedure may not retain their values after the procedure exits.  XPL69 made all variables 
 \b static
@@ -835,11 +835,11 @@ Appendix A --- Compiler Options --- \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\li2148\fi-2150\ri0\pardirnatural\partightenfactor0
 \cf2 	-v number	Set the number of entries reserved for the argv array in the compiled program.   32 is the default.  If your program needs more than 32 command line options you may use this option to expand the number of descriptors used in the argv array.  This option has no effect on the command line of the compiler itself.\
 \
-	-o outfile	Sets the name of the C source file that will be passed to the C compiler.  The default is the basename of the input file with a .c appended.\
+	-o outfile	Sets the name of the output file of the XPL compiler.  This file is then used as the C source file which is passed to the C compiler.  The default is the basename of the input file with a .c appended.\
 \
-	-s stringfile	Set the name of the C header file that will be used by the C compiler.  The default is the basename  of the object file with a .xh extension.\
+	-s stringfile	Set the name of the C header file that will be used by the C compiler.  The default is the basename of the object file with a .xh extension.\
 \
-	file		Is the name of the XPL source file.  I suggest using .xpl as an extension.  If missing the compiler will read input from stdin.  When the source file name is missing the -o option must be used.\
+	file		Is the name of the XPL source file.  I suggest using .xpl as an extension.  If missing the compiler will read input from stdin.  When the source file name is missing the -o option is required.\
 \
 	Compiler Toggles may be set on the command line or embedded in PL/I style comments.\
 \
