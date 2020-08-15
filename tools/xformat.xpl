@@ -767,9 +767,9 @@ process: procedure;
                 j = expand_length(line);
             end;
         if j > length_warning then do;
-            output(1) = line_count || '  ' || line;
-            output(1) = 'Text exceeds warning threshold.';
-        end;
+                output(1) = line_count || '  ' || line;
+                output(1) = 'Text exceeds warning threshold.';
+            end;
         if output_tab > 1 & indent_state = NORMAL_STATE then do;
                 declare tabs character;
 
