@@ -737,7 +737,7 @@ enum specials {BIN_SCALAR, BIN_ARRAY, BIN_STRING, BIN_CHAR_POINTER, BIN_CALL,
 	BIN_INPUT, BIN_OUTPUT, BIN_FILE, BIN_INLINE, BIN_ADDR, BIN_SADDR,
 	BIN_COREBYTE, BIN_COREHALFWORD, BIN_COREWORD, BIN_CORELONGWORD,
 	BIN_BUILD_DESCRIPTOR, BIN_XFPRINTF, BIN_XPRINTF, BIN_XSPRINTF,
-	BIN_CONSTANT, BIN_NOP};
+	BIN_CONSTANT, BIN_NOP, BIN_EXIT};
 
 struct builtin_s builtin[] = {
 	{FIXEDTYPE, 0, 0, BIF_MAP, STR("time_of_generation")},
@@ -754,8 +754,6 @@ struct builtin_s builtin[] = {
 	{PROC_BIT32, 0, 0, BIF_MAP, STR("time")},
 	{PROC_BIT32, 0, 0, BIF_MAP, STR("date")},
 	{PROC_VOID, 0, 0, 0, STR("compactify")},
-	{PROC_VOID, 0, 0, BIF_NOP, STR("exit")},
-	{FIXEDTYPE, 0, 0, 0, STR(" ")},	/* Parameter 1.  Must follow exit()  */
 	{PROC_VOID, 0, 0, BIF_NOP, STR("abort")},
 	{FIXEDTYPE, 0, 0, BIF_MAP, STR("xerrno")},
 	{PROC_BIT32, 0, 0, BIF_MAP, STR("xio_get_flags")},
@@ -807,6 +805,7 @@ struct builtin_s builtin[] = {
 	{SPECIAL, BIN_XSPRINTF, 0, BIF_X1, STR("xsprintf")},
 	{SPECIAL, BIN_NOP, 0, BIF_X1, STR("trace")},
 	{SPECIAL, BIN_NOP, 0, BIF_X1, STR("untrace")},
+	{SPECIAL, BIN_EXIT, 0, BIF_X1, STR("exit")},
 	{0, 0, 0, 0, {0, 0}}
 };
 
@@ -4839,6 +4838,8 @@ synthesize(int production_number)
 	static STRING and_one = STR(" & 1");
 	static STRING not_constant = STR("Value must be a constant");
 	static STRING cast_void_star = STR("(void *)(XPL_ADDRESS)(");
+	static STRING call_abort = STR("__xpl_abort()");
+	static STRING call_exit = STR("__xpl_exit(");
 	STRING *synthesize_string;
 	int i, j, k, sym;
 
@@ -5714,6 +5715,10 @@ synthesize(int production_number)
 			ps_type[mp] = PROC_VOID;
 			ps_text(mp)._Length = 0;
 			break;
+		case BIN_EXIT:
+			ps_text(mp) = call_abort;
+			ps_type[mp] = PROC_VOID;
+			break;
 		default:
 			break;
 		}
@@ -6093,6 +6098,12 @@ synthesize(int production_number)
 			CAT(&ps_text(mp), synthesize_string, &close_paren);
 			ps_type[mp] = FIXEDTYPE;
 			ps_bin[mp] = BIN_ACCUMULATOR;
+			break;
+		case BIN_EXIT:
+			forceaccumulator(mpp1, FIXEDTYPE, TRUE);
+			CAT(synthesize_string, &call_exit, &ps_text(mpp1));
+			CAT(&ps_text(mp), synthesize_string, &close_paren);
+			ps_type[mp] = PROC_VOID;
 			break;
 		default:
 			break;
@@ -6634,7 +6645,7 @@ main(int argv, char **argc)
 	int i, j, k, show_usage = 0;
 	char *kp;
 
-	printf("XPL to C language translator -- version 0.7\n");
+	printf("XPL to C language translator -- version 1.0\n");
 
 	argv_limit = 32;
 	temp_descriptor = DESCRIPTOR_STACK;
