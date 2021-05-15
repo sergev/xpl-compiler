@@ -1,4 +1,13 @@
 
+2021/5/15 Release 1.0 changes.
+
+1) Fix a concatenate bug where it would fail if both strings ended at FREEPOINT.
+2) The builtin function EXIT will now abort the program when it is used
+   without an argument.  This is compatible with the original XPL standard.
+3) When used with an argument the EXIT function will perform a normal return
+   with the argument as the return value.  This is compatible with the EXIT
+   function in the C language.
+
 2020/8/14 Release 0.7 changes.
 
 1) Add a program xtags to create a tags file for VI to use on XPL programs.
@@ -7,9 +16,9 @@
 3) Fix the xrewind() function to correctly flush I/O before rewinding.
 4) Generate an error message when a parameter is redefined.
 5) Add caret(^) to xxref as an operator.
-6) Add xfprmat option -n to specify the number of spaces before a comment
+6) Add xformat option -n to specify the number of spaces before a comment
    that starts a line.
-7) Add xfprmat option -w to to give a warning when a line exceeds a given
+7) Add xformat option -w to to give a warning when a line exceeds a given
    length.
 8) Minor changes to the documentation.
 
