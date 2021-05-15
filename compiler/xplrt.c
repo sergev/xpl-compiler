@@ -319,7 +319,7 @@ __xpl_decimal(__xpl_string *outstr, XPL_LONG number)
 __xpl_string *
 __xpl_cat(__xpl_string *outstr, __xpl_string *left, __xpl_string *right)
 {
-	__xpl_string *s, *t;
+	__xpl_string *s;
 
 	if (left->_Length == 0) {
 		if (right->_Length == 0) {
@@ -342,12 +342,12 @@ __xpl_cat(__xpl_string *outstr, __xpl_string *left, __xpl_string *right)
 		compactify();
 	}
 	s = __xpl_move_to_top(__xpl_pool(), left);
-	t = __xpl_move_to_top(__xpl_pool(), right);
-	outstr->_Length = s->_Length + t->_Length;
+	memmove((void *) (freepoint), right->_Address, (size_t) right->_Length);
+	freepoint += right->_Length;
+	outstr->_Length = s->_Length + right->_Length;
 	outstr->_Address = s->_Address;
 
 	s->_Length = 0;	/* Housekeeping */
-	t->_Length = 0;	/* Housekeeping */
 	return outstr;
 }
 
@@ -566,7 +566,10 @@ __xpl_c2x_string(__xpl_string *outstr, char *str)
 **	__xpl_exit()
 **
 **	Gracefully exit the program.  This is the Unix function call exit()
-**	The original XPL compiler implemented this as an abnormal exit.
+**	The compiler will translate an exit call with an argument:
+**		call exit(<expression>);
+**	to the Unix exit function.  The <expression> will be the exit code.
+**	This is an extention to the XPL language.
 */
 void
 __xpl_exit(int status)
@@ -578,6 +581,8 @@ __xpl_exit(int status)
 **	__xpl_abort()
 **
 **	Abort the program.  This is the Unix function call abort()
+**	When exit is called with no arguments it will call this function.
+**	This is standard behaviour for XPL.
 */
 void
 __xpl_abort(void)
