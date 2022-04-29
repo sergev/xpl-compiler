@@ -77,8 +77,8 @@ __xpl_string *__xpl_substr3(__xpl_string *outstr, __xpl_string *str, int pos, in
 /* I/O routines */
 #define __XPL_FILE_MAX 32
 #if defined(__xpl_FILE)
-__xpl_FILE *__xpl_FILE_in[__XPL_FILE_MAX];
-__xpl_FILE *__xpl_FILE_out[__XPL_FILE_MAX];
+extern __xpl_FILE *__xpl_FILE_in[__XPL_FILE_MAX];
+extern __xpl_FILE *__xpl_FILE_out[__XPL_FILE_MAX];
 #endif
 extern char __xpl_FILE_eol[__XPL_FILE_MAX];
 extern int __xpl_FILE_flags[__XPL_FILE_MAX];

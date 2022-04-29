@@ -1,0 +1,13 @@
+*.o
+*.a
+*.xh
+xpl
+/xpl.h
+tools/*.c
+tws/*.c
+xformat
+xtags
+xxref
+analyzer
+skeleton
+xa
